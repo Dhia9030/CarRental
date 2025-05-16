@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../user/entities/user.entity'; // Adjust path as needed
-import { Car } from '../car/entities/car.entity';   // Adjust path as needed
+import { User } from '../../user/entities/user.entity';
+import { Car } from '../../car/entities/car.entity';
 
 @Entity()
 export class Review {
