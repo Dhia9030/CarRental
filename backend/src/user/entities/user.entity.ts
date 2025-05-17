@@ -1,7 +1,7 @@
 import { Booking } from 'src/booking/entities/booking.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
-
+import { UserRole } from '../enums/role.enum';
 @Entity()
 @Unique(['email'])
 export class User {
@@ -26,6 +26,13 @@ export class User {
 
     @Column({ type: 'varchar', length: 100, nullable: false })
     lastName: string;
+
+    @Column({
+        type: 'enum',
+        enum: UserRole,
+        default: UserRole.USER,
+    })
+    role: UserRole;
 
     @CreateDateColumn()
     createdAt: Date;
