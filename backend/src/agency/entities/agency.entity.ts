@@ -1,7 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { Car } from '../../car/entities/car.entity';
-import { Review } from 'src/review/entities/review.entity';
-import { Booking } from 'src/booking/entities/booking.entity';
 
 @Entity()
 @Unique(['email'])
@@ -33,11 +31,5 @@ export class Agency {
 
     @OneToMany(() => Car, car => car.agency)
     cars: Car[];
-
-    @OneToMany(() => Review, review => review.user)
-    reviews: Review[];
-
-    @OneToMany(() => Booking, booking => booking.user)
-    bookings: Review[];
 
 }
