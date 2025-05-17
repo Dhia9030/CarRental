@@ -45,6 +45,6 @@ export class Car {
     reviews: Review[];
 
     @OneToMany(() => Booking, booking => booking.car)
-    bookings: Review[];
+    bookings: Booking[];
 
 }

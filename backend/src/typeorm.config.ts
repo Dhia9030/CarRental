@@ -11,7 +11,7 @@ export default new DataSource({
   username: configService.get('DB_USERNAME'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_DATABASE'),
-  entities: ['src/modules/**/entities/*.entity{.ts,.js}'],
+  entities: ['src/**/entities/*.entity{.ts,.js}'],
   driver: require('mysql2'),
   migrations: ['src/migrations/*{.ts,.js}'],
   synchronize: false,
