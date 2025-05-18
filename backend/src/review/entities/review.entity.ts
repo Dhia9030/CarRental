@@ -1,9 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Car } from '../../car/entities/car.entity';
+import { TimestampEntity } from 'src/Generics/timestamp.entity';
 
 @Entity()
-export class Review {
+export class Review extends TimestampEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
