@@ -11,7 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-    
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -34,4 +34,4 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
