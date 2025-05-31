@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Param, Body, Query, Patch } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dtos/create-booking.dto';
 import { UpdateBookingDto } from './dtos/update-booking.dto';
@@ -8,7 +8,7 @@ import { BookingStatus } from './entities/booking.entity';
 export class BookingController {
     constructor(private readonly bookingService: BookingService) {}
 
-    @Post()
+    @Post('add')
     async create(@Body() createBookingDto: CreateBookingDto) {
         return this.bookingService.create(createBookingDto);
     }
@@ -48,6 +48,17 @@ export class BookingController {
     ) {
         return this.bookingService.update(+id, updateBookingDto);
     }
+
+    @Patch(':id')
+    async updateStatus(
+        @Param('id') id: number,
+        @Body() updateBookingDto : UpdateBookingDto,
+    ) {
+        console.log('updateBookingDto:', updateBookingDto);
+        console.log('id:', id);
+        return this.bookingService.updateStatus(+id, updateBookingDto.status?? BookingStatus.Pending);
+    }
+
 
     @Delete(':id')
     async remove(@Param('id') id: number) {

@@ -2,11 +2,14 @@ import { Repository } from "typeorm";
 import { CreateCarDto } from "./dtos/create-car.dto";
 import { UpdateCarDto } from "./dtos/update-car.dto";
 import { Car } from "./entities/car.entity";
+import { InjectRepository } from "@nestjs/typeorm";
 
 
 export class CarService{
 
-    constructor(private readonly carRepository: Repository<Car>) {}
+    constructor(
+      @InjectRepository(Car)
+      private readonly carRepository: Repository<Car>) {}
 
     async create(createCarDto: CreateCarDto, agencyId: number) {
         const car = this.carRepository.create({

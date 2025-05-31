@@ -5,6 +5,7 @@ import { CreateBookingDto } from './dtos/create-booking.dto';
 import { UpdateBookingDto } from './dtos/update-booking.dto';
 import { Booking } from './entities/booking.entity';
 import { Between } from 'typeorm';
+import { BookingStatus } from './entities/booking.entity';
 
 @Injectable()
 export class BookingService {
@@ -19,6 +20,7 @@ export class BookingService {
             startDate: new Date(createBookingDto.startDate),
             endDate: new Date(createBookingDto.endDate)
         });
+        console.log(createBookingDto.startDate)
         return this.bookingRepository.save(booking);
     }
 
@@ -35,7 +37,7 @@ export class BookingService {
     }
 
     async findByStatus(status: BookingStatus): Promise<Booking[]> {
-        return this.bookingRepository.find({ where: { status } });
+        return this.bookingRepository.find({  where : { status } });
     }
 
     async findByDateRange(startDate: string, endDate: string): Promise<Booking[]> {
@@ -55,6 +57,10 @@ export class BookingService {
             startDate: updateBookingDto.startDate ? new Date(updateBookingDto.startDate) : undefined,
             endDate: updateBookingDto.endDate ? new Date(updateBookingDto.endDate) : undefined
         });
+    }
+
+    async updateStatus(id: number, status: BookingStatus): Promise<void> {
+        await this.bookingRepository.update(id, { status });
     }
 
     async remove(id: number): Promise<void> {
