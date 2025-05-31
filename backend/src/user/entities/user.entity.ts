@@ -2,9 +2,10 @@ import { Booking } from 'src/booking/entities/booking.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { UserRole } from '../enums/role.enum';
+import { TimestampEntity } from 'src/Generics/timestamp.entity';
 @Entity()
 @Unique(['email'])
-export class User {
+export class User extends TimestampEntity {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -33,12 +34,6 @@ export class User {
         default: UserRole.USER,
     })
     role: UserRole;
-
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
 
     @OneToMany(() => Review, review => review.user)
     reviews: Review[];

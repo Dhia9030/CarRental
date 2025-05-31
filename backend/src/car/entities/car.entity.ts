@@ -3,9 +3,10 @@ import { FuelType } from '../enums/fuel-type.enum';
 import { Agency } from 'src/agency/entities/agency.entity';
 import { Review } from 'src/review/entities/review.entity';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { TimestampEntity } from 'src/Generics/timestamp.entity';
 
 @Entity()
-export class Car {
+export class Car extends TimestampEntity {
     @PrimaryGeneratedColumn()
     id: number;
 

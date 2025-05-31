@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { User } from '../../user/entities/user.entity'; // Adjust path as needed
 import { Car } from '../../car/entities/car.entity';     // Adjust path as needed
+import { TimestampEntity } from 'src/Generics/timestamp.entity';
 
 export enum BookingStatus {
   Pending = 'Pending',
@@ -9,7 +10,7 @@ export enum BookingStatus {
 }
 
 @Entity()
-export class Booking {
+export class Booking extends TimestampEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
