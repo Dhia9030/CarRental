@@ -24,11 +24,6 @@ export class User extends TimestampEntity {
     })
     password: string;
 
-    @Column()
-    @Exclude()
-    salt: string;
-
-
     @Column({ type: 'varchar', length: 100, nullable: false })
     firstName: string;
 

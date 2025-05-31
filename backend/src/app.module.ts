@@ -28,7 +28,7 @@ import { AuthModule } from './auth/auth.module';
         database: configService.get('DB_DATABASE'),
         autoLoadEntities: true,
         driver: require('mysql2'),
-        synchronize: true,
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
