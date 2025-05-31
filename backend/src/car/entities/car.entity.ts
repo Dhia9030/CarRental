@@ -37,6 +37,9 @@ export class Car extends TimestampEntity {
     @Column({ type: 'int' })
     seat: number;
 
+    @Column({ nullable: true })
+    agencyId: number;
+
     @ManyToOne(() => Agency, { eager: true })
     @JoinColumn({ name: 'agencyId' })
     agency: Agency;

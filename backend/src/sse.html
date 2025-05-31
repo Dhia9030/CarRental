@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Rental - Booking Events</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .event-list {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .event-item {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .event-time {
+            color: #777;
+            font-size: 0.8em;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .connection-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .connected {
+            background-color: #dff2bf;
+            color: #4F8A10;
+        }
+        .disconnected {
+            background-color: #ffbaba;
+            color: #D8000C;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Booking Events Monitor <span id="connectionStatus" class="connection-status disconnected">Disconnected</span></h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="all">All Bookings</div>
+            <div class="tab" data-tab="agency">Agency Bookings</div>
+        </div>
+        
+        <div id="allBookings" class="tab-content active">
+            <h2>All Booking Events</h2>
+            <button id="connectAllBtn">Connect</button>
+            <button id="disconnectAllBtn" disabled>Disconnect</button>
+            <div class="event-list" id="allEventsList">
+                <div class="event-item">
+                    <div class="event-time">Waiting for events...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="agencyBookings" class="tab-content">
+            <h2>Agency-Specific Booking Events</h2>
+            <div class="input-group">
+                <label for="agencyId">Agency ID:</label>
+                <input type="number" id="agencyId" value="1">
+            </div>
+            <button id="connectAgencyBtn">Connect</button>
+            <button id="disconnectAgencyBtn" disabled>Disconnect</button>
+            <div class="event-list" id="agencyEventsList">
+                <div class="event-item">
+                    <div class="event-time">Waiting for events...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for event sources
+        let allBookingsEventSource = null;
+        let agencyBookingsEventSource = null;
+
+        // DOM elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // All bookings elements
+        const connectAllBtn = document.getElementById('connectAllBtn');
+        const disconnectAllBtn = document.getElementById('disconnectAllBtn');
+        const allEventsList = document.getElementById('allEventsList');
+        
+        // Agency bookings elements
+        const agencyIdInput = document.getElementById('agencyId');
+        const connectAgencyBtn = document.getElementById('connectAgencyBtn');
+        const disconnectAgencyBtn = document.getElementById('disconnectAgencyBtn');
+        const agencyEventsList = document.getElementById('agencyEventsList');
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Bookings').classList.add('active');
+            });
+        });
+
+        // Connect to all bookings SSE
+        connectAllBtn.addEventListener('click', () => {
+            // Clear previous events
+            allEventsList.innerHTML = '';
+            
+            // Create event source
+            allBookingsEventSource = new EventSource('http://localhost:3000/events/bookings');
+            
+            // Event handlers
+            allBookingsEventSource.onopen = () => {
+                addEventToList(allEventsList, 'Connected to all bookings stream', 'System');
+                updateConnectionStatus(true);
+                toggleButtons(connectAllBtn, disconnectAllBtn);
+            };
+            
+            allBookingsEventSource.onmessage = (event) => {
+                try {
+                    const bookingEvent = JSON.parse(event.data);
+                    console.log('All bookings event:', bookingEvent);
+                    
+                    // Format and display the event
+                    const booking = bookingEvent.data;
+                    const message = `New booking: ID ${booking.id}, Car ${booking.car?.id}, User ${booking.userId}`;
+                    addEventToList(allEventsList, message, bookingEvent);
+                } catch (error) {
+                    console.error('Error parsing event:', error);
+                    addEventToList(allEventsList, 'Error parsing event: ' + error.message, 'Error');
+                }
+            };
+            
+            allBookingsEventSource.onerror = (error) => {
+                console.error('EventSource failed:', error);
+                addEventToList(allEventsList, 'Connection error', 'Error');
+                updateConnectionStatus(false);
+                disconnectAllBookings();
+            };
+        });
+        
+        // Disconnect from all bookings SSE
+        disconnectAllBtn.addEventListener('click', disconnectAllBookings);
+        
+        function disconnectAllBookings() {
+            if (allBookingsEventSource) {
+                allBookingsEventSource.close();
+                allBookingsEventSource = null;
+                addEventToList(allEventsList, 'Disconnected from all bookings stream', 'System');
+                toggleButtons(disconnectAllBtn, connectAllBtn);
+                updateConnectionStatus(false);
+            }
+        }
+        
+        // Connect to agency bookings SSE
+        connectAgencyBtn.addEventListener('click', () => {
+            const agencyId = agencyIdInput.value;
+            if (!agencyId) {
+                alert('Please enter an Agency ID');
+                return;
+            }
+            
+            // Clear previous events
+            agencyEventsList.innerHTML = '';
+            
+            // Create event source
+            agencyBookingsEventSource = new EventSource(`http://localhost:3000/events/bookings/agency/${agencyId}`);
+            
+            // Event handlers
+            agencyBookingsEventSource.onopen = () => {
+                addEventToList(agencyEventsList, `Connected to agency ${agencyId} bookings stream`, 'System');
+                updateConnectionStatus(true);
+                toggleButtons(connectAgencyBtn, disconnectAgencyBtn);
+            };
+            
+            agencyBookingsEventSource.onmessage = (event) => {
+                try {
+                    const bookingEvent = JSON.parse(event.data);
+                    console.log(`Agency ${agencyId} booking event:`, bookingEvent);
+                    
+                    // Format and display the event
+                    const booking = bookingEvent.data;
+                    const message = `New booking for agency ${agencyId}: ID ${booking.id}, Car ${booking.car?.id}, User ${booking.userId}`;
+                    addEventToList(agencyEventsList, message, bookingEvent);
+                } catch (error) {
+                    console.error('Error parsing event:', error);
+                    addEventToList(agencyEventsList, 'Error parsing event: ' + error.message, 'Error');
+                }
+            };
+            
+            agencyBookingsEventSource.onerror = (error) => {
+                console.error('EventSource failed:', error);
+                addEventToList(agencyEventsList, 'Connection error', 'Error');
+                updateConnectionStatus(false);
+                disconnectAgencyBookings();
+            };
+        });
+        
+        // Disconnect from agency bookings SSE
+        disconnectAgencyBtn.addEventListener('click', disconnectAgencyBookings);
+        
+        function disconnectAgencyBookings() {
+            if (agencyBookingsEventSource) {
+                agencyBookingsEventSource.close();
+                agencyBookingsEventSource = null;
+                addEventToList(agencyEventsList, 'Disconnected from agency bookings stream', 'System');
+                toggleButtons(disconnectAgencyBtn, connectAgencyBtn);
+                updateConnectionStatus(false);
+            }
+        }
+        
+        // Helper function to add event to list
+        function addEventToList(listElement, message, eventData) {
+            const eventItem = document.createElement('div');
+            eventItem.className = 'event-item';
+            
+            const time = new Date().toLocaleTimeString();
+            
+            let content = '';
+            content += `<div class="event-time">${time}</div>`;
+            content += `<div class="event-message">${message}</div>`;
+            
+            // Add JSON data if it's a real event
+            if (eventData !== 'System' && eventData !== 'Error') {
+                content += `<pre>${JSON.stringify(eventData, null, 2)}</pre>`;
+            }
+            
+            eventItem.innerHTML = content;
+            listElement.appendChild(eventItem);
+            
+            // Auto-scroll to bottom
+            listElement.scrollTop = listElement.scrollHeight;
+        }
+        
+        // Helper function to toggle button states
+        function toggleButtons(disableBtn, enableBtn) {
+            disableBtn.disabled = true;
+            enableBtn.disabled = false;
+        }
+        
+        // Helper function to update connection status
+        function updateConnectionStatus(isConnected) {
+            if (isConnected) {
+                connectionStatus.textContent = 'Connected';
+                connectionStatus.className = 'connection-status connected';
+            } else {
+                // Only set to disconnected if both event sources are closed
+                if (!allBookingsEventSource && !agencyBookingsEventSource) {
+                    connectionStatus.textContent = 'Disconnected';
+                    connectionStatus.className = 'connection-status disconnected';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
