@@ -8,6 +8,7 @@ import { ReviewModule } from './review/review.module';
 import { BookingModule } from './booking/booking.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule],
+    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

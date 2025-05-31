@@ -3,6 +3,9 @@ import { Review } from 'src/review/entities/review.entity';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { UserRole } from '../enums/role.enum';
 import { TimestampEntity } from 'src/Generics/timestamp.entity';
+import { Exclude } from 'class-transformer';
+
+
 @Entity()
 @Unique(['email'])
 export class User extends TimestampEntity {
@@ -20,6 +23,11 @@ export class User extends TimestampEntity {
         select: false  // do not select password by default
     })
     password: string;
+
+    @Column()
+    @Exclude()
+    salt: string;
+
 
     @Column({ type: 'varchar', length: 100, nullable: false })
     firstName: string;
