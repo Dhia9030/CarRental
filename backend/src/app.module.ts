@@ -8,7 +8,7 @@ import { ReviewModule } from './review/review.module';
 import { BookingModule } from './booking/booking.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { EventsModule } from './events/events.module';
 @Module({
   imports: [
 
@@ -28,10 +28,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         autoLoadEntities: true,
         driver: require('mysql2'),
         synchronize: true,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule],
+    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule ],
   controllers: [AppController],
   providers: [AppService],
 })
