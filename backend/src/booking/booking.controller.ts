@@ -33,12 +33,17 @@ export class BookingController {
         return this.bookingService.findByStatus(status);
     }
 
-    @Get('date-range')
+    @Get('filter/date-range')
     async findByDateRange(
         @Query('startDate') startDate: string,
         @Query('endDate') endDate: string,
     ) {
         return this.bookingService.findByDateRange(startDate, endDate);
+    }
+
+    @Get()
+    async findAll() {
+        return this.bookingService.findAll();
     }
 
     @Put(':id')
