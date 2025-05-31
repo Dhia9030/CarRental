@@ -26,6 +26,11 @@ export class BookingService {
 
     async findById(id: number): Promise<Booking | null> {
         return this.bookingRepository.findOne({ where: { id } });
+        
+    }
+
+    async findAll():Promise<Booking[]> {
+        return this.bookingRepository.find();
     }
 
     async findByCar(carId: number): Promise<Booking[]> {
