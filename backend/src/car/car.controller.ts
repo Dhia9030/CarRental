@@ -4,9 +4,11 @@ import { CarService } from './car.service';
 import { UpdateCarDto } from './dtos/update-car.dto';
 
 
+@Controller('cars')
 export class CarController {
-    carService: CarService;
-  constructor() {}
+  constructor(
+    private readonly carService: CarService,
+  ) {}
 
 @Post()
 create(@Body() createCarDto: CreateCarDto) {
