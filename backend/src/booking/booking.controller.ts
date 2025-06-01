@@ -6,6 +6,9 @@ import { BookingStatus } from './entities/booking.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
 import { User , Agency} from 'src/auth/decorators/auth.decorators';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 
 
 @Controller('bookings')
@@ -48,6 +51,9 @@ export class BookingController {
     ) {
         return this.bookingService.findByDateRange(startDate, endDate);
     }
+    @Roles(Role.AGENCY)
+    @UseGuards(RolesGuard)
+
     @Get('agency/filter/date-range')
     async findByDateRangeAgency(
         @Query('startDate') startDate: string,

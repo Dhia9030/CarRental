@@ -5,6 +5,7 @@ import { User , Agency } from 'src/auth/decorators/auth.decorators';
 
 @Controller('user')
 export class UserController {
+
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     getProfile(@User() user , @Agency() agency) {
