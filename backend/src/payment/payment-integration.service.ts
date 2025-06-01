@@ -185,9 +185,7 @@ export class PaymentIntegrationService {
         });
         refunds.push(refund);
       }
-    }
-
-    // Update booking status
+    }    // Update booking status
     await this.bookingService.updateStatus(bookingId, BookingStatus.Rejected);
 
     return { refunds, cancellationFee };

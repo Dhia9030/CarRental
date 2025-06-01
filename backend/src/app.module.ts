@@ -12,6 +12,7 @@ import { EventsModule } from "./events/events.module";
 import { AuthModule } from "./auth/auth.module";
 import { PaymentModule } from "./payment/payment.module";
 import { HealthModule } from "./health/health.module";
+import { ChatModule } from "./chat/chat.module";
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { HealthModule } from "./health/health.module";
     AuthModule,
     PaymentModule,
     HealthModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
