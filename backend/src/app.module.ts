@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventsModule } from './events/events.module';
 import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -29,12 +30,12 @@ import { AuthModule } from './auth/auth.module';
         database: configService.get('DB_DATABASE'),
         autoLoadEntities: true,
         driver: require('mysql2'),
-        synchronize: true,
+        synchronize: false,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule,AuthModule ],
+    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule, AuthModule, ChatModule],
   controllers: [AppController],
   providers: [AppService],
 })
