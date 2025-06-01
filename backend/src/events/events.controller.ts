@@ -1,17 +1,24 @@
 import { Controller, Param, ParseIntPipe, Sse } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { EventsService } from './events.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
+import { Agency } from 'src/auth/decorators/auth.decorators';
 
 @Controller('events')
+@UseGuards(JwtAuthGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
 
-  @Sse('bookings/agency/:agencyId')
+  @Sse('bookings/agency')
   subscribeToAgencyBookings(
-    @Param('agencyId', ParseIntPipe) agencyId: number
+    @Agency() agency
   ): Observable<MessageEvent> {
-    return this.eventsService.subscribeToAgencyBookings(agencyId);
+    if(!agency){
+      return new Observable();
+    }
+    return this.eventsService.subscribeToAgencyBookings(agency.agencyId);
   }
 
   @Sse('bookings')
