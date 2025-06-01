@@ -14,9 +14,16 @@ export class Booking extends TimestampEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: true })
+  userId: number;
+
   @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'userId' })
   user: User;
+
+
+  @Column({ nullable: true })
+  carId: number;
 
   @ManyToOne(() => Car, { eager: true })
   @JoinColumn({ name: 'carId' })

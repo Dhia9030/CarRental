@@ -8,6 +8,7 @@ import { ReviewModule } from './review/review.module';
 import { BookingModule } from './booking/booking.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EventsModule } from './events/events.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -28,11 +29,12 @@ import { AuthModule } from './auth/auth.module';
         database: configService.get('DB_DATABASE'),
         autoLoadEntities: true,
         driver: require('mysql2'),
-        synchronize: false,
+        synchronize: true,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, AuthModule],
+    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule,AuthModule ],
   controllers: [AppController],
   providers: [AppService],
 })

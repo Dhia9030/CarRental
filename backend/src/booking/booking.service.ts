@@ -6,22 +6,32 @@ import { UpdateBookingDto } from './dtos/update-booking.dto';
 import { Booking } from './entities/booking.entity';
 import { Between } from 'typeorm';
 import { BookingStatus } from './entities/booking.entity';
+import { EventsService } from '../events/events.service';
 
 @Injectable()
 export class BookingService {
     constructor(
         @InjectRepository(Booking)
         private readonly bookingRepository: Repository<Booking>,
+        private readonly eventsService: EventsService
     ) {}
 
     async create(createBookingDto: CreateBookingDto): Promise<Booking> {
+        console.log(createBookingDto);
         const booking = this.bookingRepository.create({
             ...createBookingDto,
             startDate: new Date(createBookingDto.startDate),
             endDate: new Date(createBookingDto.endDate)
         });
-        console.log(createBookingDto.startDate)
-        return this.bookingRepository.save(booking);
+        //console.log(createBookingDto.startDate)
+        const savedBooking = await this.bookingRepository.save(booking);
+        const completeBooking = await this.bookingRepository.findOne({
+            where: { id: savedBooking.id },
+            relations: ['car', 'car.agency']
+        });
+        this.eventsService.emitBookingCreated(completeBooking);
+
+        return savedBooking;
     }
 
     async findById(id: number): Promise<Booking | null> {
