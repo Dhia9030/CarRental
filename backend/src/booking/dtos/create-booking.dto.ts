@@ -1,9 +1,7 @@
-import { IsInt, IsDateString, IsEnum, IsNumber, Min } from 'class-validator';
+import { IsInt, IsDateString, IsEnum, IsNumber, Min, IsOptional } from 'class-validator';
 import { BookingStatus } from '../entities/booking.entity';
 
 export class CreateBookingDto {
-  @IsInt()
-  userId: number;
 
   @IsInt()
   carId: number;
@@ -14,6 +12,7 @@ export class CreateBookingDto {
   @IsDateString()
   endDate: string;
 
+  @IsOptional()
   @IsEnum(BookingStatus)
   status: BookingStatus;
 
