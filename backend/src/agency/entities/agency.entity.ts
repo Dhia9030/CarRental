@@ -3,14 +3,12 @@ import { Car } from '../../car/entities/car.entity';
 import { TimestampEntity } from 'src/Generics/timestamp.entity';
 
 @Entity()
-@Unique(['email'])
-@Unique(['username'])
 export class Agency extends TimestampEntity {
 
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'varchar', length: 100, nullable: false })
+    @Column({ type: 'varchar', length: 100, nullable: false, unique: true })
     email: string;
 
     @Column({

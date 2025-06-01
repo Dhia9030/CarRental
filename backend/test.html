@@ -11,35 +11,29 @@
     <input id="msg" placeholder="Enter message..." />
     <button onclick="sendMessage()">Send</button>
     <div id="chat"></div>
-
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script>
-        const userId = prompt("Enter your user ID");
+        const token = prompt("Paste your JWT token here");
         const socket = io('http://localhost:3000', {
-            query: { userId }
+            auth: { token }
         });
 
-        socket.on('receiveMessage', (message) => {
-            const el = document.createElement('div');
-            el.innerText = `From ${message.senderId}: ${message.content}`;
-            document.getElementById('chat').appendChild(el);
+        socket.on('connect', () => {
+            console.log('Connected');
         });
 
-        function sendMessage() {
-            const content = document.getElementById('msg').value;
-            const receiverId = prompt("Enter receiver ID");
+        socket.on('receiveMessage', (msg) => {
+            console.log('Message:', msg);
+        });
 
+        function sendMessage(toId, text) {
             socket.emit('sendMessage', {
-                senderId: Number(userId),
-                receiverId: Number(receiverId),
-                content
+                receiverId: toId,
+                content: text
             });
-
-            const el = document.createElement('div');
-            el.innerText = `You: ${content}`;
-            document.getElementById('chat').appendChild(el);
         }
     </script>
+
 </body>
 
 </html>
