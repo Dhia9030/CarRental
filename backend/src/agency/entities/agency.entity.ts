@@ -21,7 +21,7 @@ export class Agency extends TimestampEntity {
     })
     password: string;
 
-    @Column({ type: 'varchar', length: 100, nullable: false })
+    @Column({ type: 'varchar', length: 100, nullable: false, unique: true })
     username: string;
 
     @OneToMany(() => Car, car => car.agency)
