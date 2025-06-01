@@ -31,6 +31,7 @@ import { ChatModule } from './chat/chat.module';
         autoLoadEntities: true,
         driver: require('mysql2'),
         synchronize: false,
+        migrationsRun:true,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],
