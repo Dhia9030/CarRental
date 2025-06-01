@@ -7,45 +7,31 @@ import {
     OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-
-interface ChatMessage {
-    senderId: number;
-    receiverId: number;
-    content: string;
-}
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-    private clients = new Map<number, Socket>();
-    handleConnection(client: Socket) {
-        const userId = Number(client.handshake.query.userId);
-        console.log('Connection attempt from userId:', userId);
-        if (!userId || isNaN(userId)) {
-            client.disconnect();
-            console.log('Disconnected due to invalid userId');
-            return;
-        }
+    constructor(private readonly chatService: ChatService) { }
 
-        this.clients.set(userId, client);
-        console.log(`User ${userId} connected`);
+    async handleConnection(client: Socket) {
+        const token = client.handshake.auth.token;
+        await this.chatService.registerClient(client, token);
     }
 
-
     handleDisconnect(client: Socket) {
-        const userId = Number(client.handshake.query.userId);
-        this.clients.delete(userId);
-        console.log(`User ${userId} disconnected`);
+        this.chatService.removeClient(client);
+    }
+
+    @SubscribeMessage('requestSupport')
+    handleSupportRequest(@ConnectedSocket() client: Socket) {
+        this.chatService.assignAdminToUser(client);
     }
 
     @SubscribeMessage('sendMessage')
     handleMessage(
-        @MessageBody() message: ChatMessage,
-        @ConnectedSocket() senderSocket: Socket,
+        @ConnectedSocket() client: Socket,
+        @MessageBody() payload: { content: string },
     ) {
-        console.log('Message received:', message);
-        const receiverSocket = this.clients.get(message.receiverId);
-        if (receiverSocket) {
-            receiverSocket.emit('receiveMessage', message);
-        }
+        this.chatService.handleMessage(client, payload.content);
     }
 }
