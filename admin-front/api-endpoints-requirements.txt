@@ -1,0 +1,1398 @@
+# CarRental Admin Platform - API Endpoints Requirements with JSON Response Objects
+
+## Authentication & Authorization
+
+POST   /auth/login                          # Admin login
+Request: { email: string, password: string }
+Response: {
+  success: boolean,
+  data: {
+    token: string,
+    refreshToken: string,
+    admin: {
+      id: number,
+      email: string,
+      firstName: string,
+      lastName: string,
+      role: string,
+      permissions: string[],
+      lastLogin: string,
+      avatar?: string
+    }
+  },
+  message: string
+}
+
+POST   /auth/logout                         # Admin logout
+Request: { refreshToken: string }
+Response: {
+  success: boolean,
+  message: string
+}
+
+POST   /auth/refresh                        # Refresh JWT token
+Request: { refreshToken: string }
+Response: {
+  success: boolean,
+  data: {
+    token: string,
+    refreshToken: string
+  }
+}
+
+GET    /auth/me                             # Get current admin info
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    email: string,
+    firstName: string,
+    lastName: string,
+    role: string,
+    permissions: string[],
+    avatar?: string,
+    createdAt: string,
+    lastLogin: string
+  }
+}
+
+POST   /auth/forgot-password                # Request password reset
+Request: { email: string }
+Response: {
+  success: boolean,
+  message: string
+}
+
+POST   /auth/reset-password                 # Reset password with token
+Request: { token: string, newPassword: string }
+Response: {
+  success: boolean,
+  message: string
+}
+
+## Dashboard & Analytics
+
+GET    /admin/dashboard/stats               # Dashboard statistics
+Response: {
+  success: boolean,
+  data: {
+    totalUsers: number,
+    activeUsers: number,
+    pendingUsers: number,
+    suspendedUsers: number,
+    totalAgencies: number,
+    activeAgencies: number,
+    pendingAgencies: number,
+    totalVehicles: number,
+    availableVehicles: number,
+    totalBookings: number,
+    activeBookings: number,
+    totalRevenue: number,
+    monthlyRevenue: number,
+    totalComplaints: number,
+    openComplaints: number,
+    resolvedComplaints: number
+  }
+}
+
+GET    /admin/dashboard/recent-activities   # Recent platform activities
+Response: {
+  success: boolean,
+  data: {
+    activities: [
+      {
+        id: number,
+        type: string, // "user_registration", "agency_validation", "complaint", "booking"
+        message: string,
+        userId?: number,
+        agencyId?: number,
+        timestamp: string,
+        status: string,
+        priority?: string
+      }
+    ]
+  }
+}
+
+GET    /admin/analytics/revenue             # Revenue analytics by period
+Query: { period: string, startDate?: string, endDate?: string }
+Response: {
+  success: boolean,
+  data: {
+    totalRevenue: number,
+    periodRevenue: number,
+    growth: number,
+    chartData: [
+      {
+        period: string,
+        revenue: number,
+        bookings: number
+      }
+    ],
+    topAgencies: [
+      {
+        id: number,
+        name: string,
+        revenue: number,
+        bookings: number
+      }
+    ]
+  }
+}
+
+GET    /admin/analytics/users               # User analytics
+Response: {
+  success: boolean,
+  data: {
+    totalUsers: number,
+    newUsers: number,
+    activeUsers: number,
+    retentionRate: number,
+    chartData: [
+      {
+        date: string,
+        newUsers: number,
+        activeUsers: number
+      }
+    ],
+    demographics: {
+      ageGroups: { [key: string]: number },
+      locations: { [key: string]: number }
+    }
+  }
+}
+
+GET    /admin/analytics/agencies            # Agency performance analytics
+Response: {
+  success: boolean,
+  data: {
+    totalAgencies: number,
+    activeAgencies: number,
+    averageRating: number,
+    topPerformers: [
+      {
+        id: number,
+        name: string,
+        totalBookings: number,
+        revenue: number,
+        rating: number,
+        vehicles: number
+      }
+    ],
+    performanceMetrics: [
+      {
+        agencyId: number,
+        name: string,
+        bookings: number,
+        revenue: number,
+        rating: number,
+        occupancyRate: number
+      }
+    ]
+  }
+}
+
+GET    /admin/analytics/vehicles            # Vehicle analytics
+Response: {
+  success: boolean,
+  data: {
+    totalVehicles: number,
+    availableVehicles: number,
+    averageOccupancy: number,
+    popularModels: [
+      {
+        model: string,
+        count: number,
+        bookings: number,
+        revenue: number
+      }
+    ],
+    categoryDistribution: [
+      {
+        category: string,
+        count: number,
+        percentage: number
+      }
+    ]
+  }
+}
+
+GET    /admin/analytics/bookings            # Booking analytics and trends
+Response: {
+  success: boolean,
+  data: {
+    totalBookings: number,
+    completedBookings: number,
+    cancelledBookings: number,
+    averageBookingValue: number,
+    bookingTrends: [
+      {
+        date: string,
+        bookings: number,
+        revenue: number
+      }
+    ],
+    popularDestinations: [
+      {
+        city: string,
+        bookings: number
+      }
+    ]
+  }
+}
+
+## User Management
+
+GET    /admin/users                         # List all users with filters and pagination
+Query: { page?: number, limit?: number, status?: string, search?: string, sortBy?: string, sortOrder?: string }
+Response: {
+  success: boolean,
+  data: {
+    users: [
+      {
+        id: number,
+        firstName: string,
+        lastName: string,
+        email: string,
+        phone: string,
+        status: string, // "active", "pending", "suspended"
+        verified: boolean,
+        registrationDate: string,
+        lastLogin?: string,
+        totalBookings: number,
+        avatar?: string,
+        address?: {
+          street: string,
+          city: string,
+          postalCode: string,
+          country: string
+        }
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    }
+  }
+}
+
+GET    /admin/users/:id                     # Get specific user details
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone: string,
+    status: string,
+    verified: boolean,
+    registrationDate: string,
+    lastLogin?: string,
+    avatar?: string,
+    address?: {
+      street: string,
+      city: string,
+      postalCode: string,
+      country: string
+    },
+    documents: [
+      {
+        id: number,
+        type: string, // "id_card", "driving_license"
+        url: string,
+        status: string, // "pending", "approved", "rejected"
+        uploadedAt: string
+      }
+    ],
+    bookings: [
+      {
+        id: string,
+        vehicleId: number,
+        startDate: string,
+        endDate: string,
+        status: string,
+        totalAmount: number
+      }
+    ],
+    complaints: [
+      {
+        id: number,
+        title: string,
+        status: string,
+        priority: string,
+        createdAt: string
+      }
+    ]
+  }
+}
+
+PUT    /admin/users/:id                     # Update user information
+Request: {
+  firstName?: string,
+  lastName?: string,
+  email?: string,
+  phone?: string,
+  status?: string
+}
+Response: {
+  success: boolean,
+  data: { /* Updated user object */ },
+  message: string
+}
+
+DELETE /admin/users/:id                     # Delete user account
+Response: {
+  success: boolean,
+  message: string
+}
+
+POST   /admin/users/:id/validate            # Validate user account
+Request: { approved: boolean, reason?: string }
+Response: {
+  success: boolean,
+  message: string
+}
+
+POST   /admin/users/:id/suspend             # Suspend user account
+Request: { reason: string, duration?: number }
+Response: {
+  success: boolean,
+  message: string
+}
+
+POST   /admin/users/:id/reactivate          # Reactivate user account
+Response: {
+  success: boolean,
+  message: string
+}
+
+GET    /admin/users/pending-validation      # Get users pending validation
+Response: {
+  success: boolean,
+  data: {
+    users: [
+      {
+        id: number,
+        firstName: string,
+        lastName: string,
+        email: string,
+        phone: string,
+        registrationDate: string,
+        documents: [
+          {
+            type: string,
+            url: string,
+            status: string
+          }
+        ]
+      }
+    ]
+  }
+}
+
+GET    /admin/users/:id/bookings            # Get user's booking history
+GET    /admin/users/:id/complaints          # Get user's complaints
+POST   /admin/users/:id/send-notification   # Send notification to user
+
+## Agency Management
+
+GET    /admin/agencies                      # List all agencies with filters and pagination
+Query: { page?: number, limit?: number, status?: string, search?: string, sortBy?: string, sortOrder?: string }
+Response: {
+  success: boolean,
+  data: {
+    agencies: [
+      {
+        id: number,
+        name: string,
+        email: string,
+        phone: string,
+        address: {
+          street: string,
+          city: string,
+          postalCode: string,
+          country: string
+        },
+        status: string, // "active", "pending", "suspended"
+        verified: boolean,
+        registrationDate: string,
+        totalVehicles: number,
+        totalBookings: number,
+        rating: number,
+        logo?: string,
+        website?: string,
+        contactPerson: string
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    }
+  }
+}
+
+GET    /admin/agencies/:id                  # Get specific agency details
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    name: string,
+    email: string,
+    phone: string,
+    address: {
+      street: string,
+      city: string,
+      postalCode: string,
+      country: string
+    },
+    status: string,
+    verified: boolean,
+    registrationDate: string,
+    logo?: string,
+    website?: string,
+    contactPerson: string,
+    siret: string,
+    documents: [
+      {
+        id: number,
+        type: string, // "business_license", "insurance", "kbis"
+        url: string,
+        status: string,
+        uploadedAt: string
+      }
+    ],
+    vehicles: [
+      {
+        id: number,
+        make: string,
+        model: string,
+        year: number,
+        status: string,
+        pricePerDay: number
+      }
+    ],
+    performance: {
+      totalBookings: number,
+      totalRevenue: number,
+      averageRating: number,
+      occupancyRate: number
+    }
+  }
+}
+
+PUT    /admin/agencies/:id                  # Update agency information
+DELETE /admin/agencies/:id                  # Delete agency account
+POST   /admin/agencies/:id/validate         # Validate agency account
+POST   /admin/agencies/:id/suspend          # Suspend agency account
+POST   /admin/agencies/:id/reactivate       # Reactivate agency account
+GET    /admin/agencies/pending-validation   # Get agencies pending validation
+Response: {
+  success: boolean,
+  data: {
+    agencies: [
+      {
+        id: number,
+        name: string,
+        email: string,
+        phone: string,
+        address: string,
+        registrationDate: string,
+        contactPerson: string,
+        siret: string,
+        website?: string,
+        documents: [
+          {
+            type: string,
+            url: string,
+            status: string
+          }
+        ]
+      }
+    ]
+  }
+}
+GET    /admin/agencies/:id/vehicles         # Get agency's vehicles
+GET    /admin/agencies/:id/bookings         # Get agency's bookings
+GET    /admin/agencies/:id/performance      # Get agency performance metrics
+POST   /admin/agencies/:id/send-notification # Send notification to agency
+
+## Vehicle Management
+
+GET    /admin/vehicles                      # List all vehicles with filters
+Query: { page?: number, limit?: number, status?: string, agencyId?: number, category?: string, search?: string }
+Response: {
+  success: boolean,
+  data: {
+    vehicles: [
+      {
+        id: number,
+        make: string,
+        model: string,
+        year: number,
+        category: string,
+        pricePerDay: number,
+        status: string, // "available", "booked", "maintenance", "pending_approval"
+        agencyId: number,
+        agencyName: string,
+        images: string[],
+        features: string[],
+        location: {
+          city: string,
+          address: string
+        },
+        rating: number,
+        totalBookings: number
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    }
+  }
+}
+
+GET    /admin/vehicles/:id                  # Get specific vehicle details
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    make: string,
+    model: string,
+    year: number,
+    category: string,
+    pricePerDay: number,
+    status: string,
+    description: string,
+    features: string[],
+    images: string[],
+    documents: string[],
+    agency: {
+      id: number,
+      name: string,
+      email: string,
+      phone: string
+    },
+    location: {
+      city: string,
+      address: string,
+      coordinates: {
+        lat: number,
+        lng: number
+      }
+    },
+    specifications: {
+      fuelType: string,
+      transmission: string,
+      seats: number,
+      doors: number,
+      mileage: number
+    },
+    bookings: [
+      {
+        id: string,
+        userId: number,
+        startDate: string,
+        endDate: string,
+        status: string,
+        totalAmount: number
+      }
+    ]
+  }
+}
+
+PUT    /admin/vehicles/:id                  # Update vehicle information
+DELETE /admin/vehicles/:id                  # Delete vehicle
+POST   /admin/vehicles/:id/approve          # Approve vehicle listing
+POST   /admin/vehicles/:id/reject           # Reject vehicle listing
+GET    /admin/vehicles/pending-approval     # Get vehicles pending approval
+GET    /admin/vehicles/:id/bookings         # Get vehicle booking history
+
+## Booking Management
+
+GET    /admin/bookings                      # List all bookings with filters
+Query: { page?: number, limit?: number, status?: string, userId?: number, agencyId?: number, startDate?: string, endDate?: string }
+Response: {
+  success: boolean,
+  data: {
+    bookings: [
+      {
+        id: string,
+        user: {
+          id: number,
+          firstName: string,
+          lastName: string,
+          email: string
+        },
+        vehicle: {
+          id: number,
+          make: string,
+          model: string,
+          year: number
+        },
+        agency: {
+          id: number,
+          name: string
+        },
+        startDate: string,
+        endDate: string,
+        status: string, // "pending", "confirmed", "active", "completed", "cancelled"
+        totalAmount: number,
+        paymentStatus: string,
+        createdAt: string,
+        pickupLocation: string,
+        dropoffLocation: string
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    }
+  }
+}
+
+GET    /admin/bookings/:id                  # Get specific booking details
+Response: {
+  success: boolean,
+  data: {
+    id: string,
+    user: {
+      id: number,
+      firstName: string,
+      lastName: string,
+      email: string,
+      phone: string
+    },
+    vehicle: {
+      id: number,
+      make: string,
+      model: string,
+      year: number,
+      category: string,
+      pricePerDay: number,
+      images: string[]
+    },
+    agency: {
+      id: number,
+      name: string,
+      email: string,
+      phone: string
+    },
+    startDate: string,
+    endDate: string,
+    status: string,
+    totalAmount: number,
+    paymentStatus: string,
+    paymentMethod: string,
+    createdAt: string,
+    pickupLocation: string,
+    dropoffLocation: string,
+    additionalServices: [
+      {
+        name: string,
+        price: number
+      }
+    ],
+    timeline: [
+      {
+        status: string,
+        timestamp: string,
+        note?: string
+      }
+    ]
+  }
+}
+
+PUT    /admin/bookings/:id/status           # Update booking status
+POST   /admin/bookings/:id/cancel           # Cancel booking
+GET    /admin/bookings/statistics           # Booking statistics and metrics
+GET    /admin/bookings/:id/timeline         # Get booking timeline/history
+
+## Complaint Management
+
+GET    /admin/complaints                    # List all complaints with filters
+Query: { page?: number, limit?: number, status?: string, priority?: string, category?: string, search?: string }
+Response: {
+  success: boolean,
+  data: {
+    complaints: [
+      {
+        id: number,
+        title: string,
+        description: string,
+        user: {
+          id: number,
+          firstName: string,
+          lastName: string,
+          email: string
+        },
+        agency: {
+          id: number,
+          name: string
+        },
+        booking?: {
+          id: string,
+          vehicle: string
+        },
+        status: string, // "open", "in_progress", "resolved", "closed"
+        priority: string, // "low", "medium", "high"
+        category: string, // "vehicle", "payment", "service", "delivery"
+        createdAt: string,
+        updatedAt: string,
+        assignedTo?: {
+          id: number,
+          name: string
+        }
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    }
+  }
+}
+
+GET    /admin/complaints/:id                # Get specific complaint details
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    title: string,
+    description: string,
+    user: {
+      id: number,
+      firstName: string,
+      lastName: string,
+      email: string,
+      phone: string,
+      avatar?: string
+    },
+    agency: {
+      id: number,
+      name: string,
+      email: string,
+      phone: string
+    },
+    booking?: {
+      id: string,
+      vehicle: {
+        make: string,
+        model: string,
+        year: number
+      },
+      startDate: string,
+      endDate: string,
+      totalAmount: number
+    },
+    status: string,
+    priority: string,
+    category: string,
+    createdAt: string,
+    updatedAt: string,
+    assignedTo?: {
+      id: number,
+      firstName: string,
+      lastName: string
+    },
+    attachments: [
+      {
+        id: number,
+        name: string,
+        url: string,
+        type: string,
+        uploadedAt: string
+      }
+    ],
+    timeline: [
+      {
+        id: number,
+        action: string,
+        user: string,
+        timestamp: string,
+        details: string
+      }
+    ],
+    adminNotes: [
+      {
+        id: number,
+        note: string,
+        adminId: number,
+        adminName: string,
+        createdAt: string
+      }
+    ]
+  }
+}
+
+PUT    /admin/complaints/:id/status         # Update complaint status
+Request: { status: string, reason?: string }
+Response: {
+  success: boolean,
+  data: { /* Updated complaint object */ },
+  message: string
+}
+
+PUT    /admin/complaints/:id/priority       # Update complaint priority
+Request: { priority: string }
+Response: {
+  success: boolean,
+  message: string
+}
+
+POST   /admin/complaints/:id/notes          # Add admin notes to complaint
+Request: { note: string }
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    note: string,
+    adminId: number,
+    adminName: string,
+    createdAt: string
+  }
+}
+
+PUT    /admin/complaints/:id                # Update complaint information
+PUT    /admin/complaints/:id/priority       # Update complaint priority
+POST   /admin/complaints/:id/assign         # Assign complaint to admin
+POST   /admin/complaints/:id/notes          # Add admin notes to complaint
+GET    /admin/complaints/:id/timeline       # Get complaint timeline
+GET    /admin/complaints/statistics         # Complaint statistics
+
+## Chat & Communication
+
+GET    /admin/chat/conversations            # List all chat conversations
+Query: { page?: number, limit?: number, type?: string, unread?: boolean }
+Response: {
+  success: boolean,
+  data: {
+    conversations: [
+      {
+        id: number,
+        user: {
+          id: number,
+          firstName: string,
+          lastName: string,
+          avatar?: string
+        },
+        lastMessage: {
+          content: string,
+          timestamp: string,
+          isFromAdmin: boolean
+        },
+        unreadCount: number,
+        status: string, // "active", "closed"
+        type: string, // "support", "complaint", "agency"
+        createdAt: string,
+        updatedAt: string
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    }
+  }
+}
+
+GET    /admin/chat/conversations/:id        # Get specific conversation
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    user: {
+      id: number,
+      firstName: string,
+      lastName: string,
+      email: string,
+      avatar?: string
+    },
+    messages: [
+      {
+        id: number,
+        content: string,
+        isFromAdmin: boolean,
+        sender: {
+          id: number,
+          name: string,
+          avatar?: string
+        },
+        timestamp: string,
+        read: boolean
+      }
+    ],
+    status: string,
+    type: string,
+    createdAt: string
+  }
+}
+
+POST   /admin/chat/conversations/:id/messages # Send message in conversation
+Request: { content: string }
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    content: string,
+    isFromAdmin: boolean,
+    sender: {
+      id: number,
+      name: string
+    },
+    timestamp: string
+  }
+}
+
+PUT    /admin/chat/messages/:id/read        # Mark message as read
+GET    /admin/chat/conversations/:id/history # Get conversation history
+POST   /admin/chat/conversations/create     # Create new conversation
+GET    /admin/chat/unread-count             # Get unread messages count
+
+## Notification Management
+
+GET    /admin/notifications                 # List all notifications with filters
+Query: { page?: number, limit?: number, read?: boolean, type?: string, priority?: string }
+Response: {
+  success: boolean,
+  data: {
+    notifications: [
+      {
+        id: number,
+        type: string, // "agency_validation", "complaint", "user_registration", "payment", "chat", "system"
+        title: string,
+        message: string,
+        read: boolean,
+        priority: string, // "low", "medium", "high"
+        timestamp: string,
+        actionUrl?: string,
+        relatedEntity?: {
+          type: string,
+          id: number
+        }
+      }
+    ],
+    pagination: {
+      currentPage: number,
+      totalPages: number,
+      totalItems: number,
+      itemsPerPage: number
+    },
+    unreadCount: number
+  }
+}
+
+GET    /admin/notifications/unread-count    # Get unread notifications count
+Response: {
+  success: boolean,
+  data: {
+    unreadCount: number,
+    highPriorityCount: number
+  }
+}
+
+PUT    /admin/notifications/:id/read        # Mark notification as read
+Response: {
+  success: boolean,
+  message: string
+}
+
+PUT    /admin/notifications/mark-all-read   # Mark all notifications as read
+Response: {
+  success: boolean,
+  message: string
+}
+
+DELETE /admin/notifications/:id             # Delete notification
+POST   /admin/notifications/send            # Send custom notification
+Request: {
+  type: string,
+  title: string,
+  message: string,
+  priority: string,
+  targetUsers?: number[],
+  targetAgencies?: number[]
+}
+Response: {
+  success: boolean,
+  data: {
+    notificationId: number,
+    sentCount: number
+  }
+}
+
+GET    /admin/notifications/unread-count    # Get unread notifications count
+
+## File Upload & Management
+
+POST   /admin/upload/image                  # Upload image file
+Request: FormData with file
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    filename: string,
+    originalName: string,
+    url: string,
+    size: number,
+    mimeType: string,
+    uploadedAt: string
+  }
+}
+
+POST   /admin/upload/document               # Upload document file
+Request: FormData with file
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    filename: string,
+    originalName: string,
+    url: string,
+    size: number,
+    mimeType: string,
+    uploadedAt: string
+  }
+}
+
+DELETE /admin/upload/:fileId                # Delete uploaded file
+GET    /admin/upload/:fileId                # Get file details
+
+## System Settings
+
+GET    /admin/settings                      # Get system settings
+Response: {
+  success: boolean,
+  data: {
+    platform: {
+      name: string,
+      description: string,
+      contactEmail: string,
+      supportPhone: string,
+      logo?: string
+    },
+    regional: {
+      defaultLanguage: string,
+      defaultCurrency: string,
+      timezone: string,
+      dateFormat: string
+    },
+    features: {
+      autoApproval: boolean,
+      emailNotifications: boolean,
+      smsNotifications: boolean,
+      maintenanceMode: boolean
+    },
+    limits: {
+      maxFileSize: number,
+      maxImagesPerVehicle: number,
+      bookingCancellationHours: number
+    }
+  }
+}
+
+PUT    /admin/settings                      # Update system settings
+Request: { /* Any of the settings fields */ }
+Response: {
+  success: boolean,
+  data: { /* Updated settings object */ },
+  message: string
+}
+
+GET    /admin/settings/platform             # Get platform configuration
+PUT    /admin/settings/platform             # Update platform configuration
+
+## Admin Profile Management
+
+GET    /admin/profile                       # Get admin profile
+Response: {
+  success: boolean,
+  data: {
+    id: number,
+    firstName: string,
+    lastName: string,
+    email: string,
+    phone?: string,
+    role: string,
+    avatar?: string,
+    timezone: string,
+    language: string,
+    createdAt: string,
+    lastLogin: string,
+    permissions: string[]
+  }
+}
+
+PUT    /admin/profile                       # Update admin profile
+Request: {
+  firstName?: string,
+  lastName?: string,
+  phone?: string,
+  timezone?: string,
+  language?: string
+}
+Response: {
+  success: boolean,
+  data: { /* Updated profile object */ },
+  message: string
+}
+
+POST   /admin/profile/change-password       # Change admin password
+POST   /admin/profile/upload-avatar         # Upload admin avatar
+
+## Reports & Export
+
+GET    /admin/reports/users                 # Generate user reports
+Query: { startDate: string, endDate: string, format?: string }
+Response: {
+  success: boolean,
+  data: {
+    summary: {
+      totalUsers: number,
+      newUsers: number,
+      activeUsers: number,
+      verifiedUsers: number
+    },
+    chartData: [
+      {
+        date: string,
+        newUsers: number,
+        activeUsers: number
+      }
+    ],
+    topUsers: [
+      {
+        id: number,
+        name: string,
+        totalBookings: number,
+        totalSpent: number
+      }
+    ]
+  }
+}
+
+GET    /admin/reports/agencies              # Generate agency reports
+GET    /admin/reports/bookings              # Generate booking reports
+GET    /admin/reports/revenue               # Generate revenue reports
+GET    /admin/reports/complaints              # Generate complaint reports
+POST   /admin/export/users                  # Export users data
+Request: { format: string, filters?: object }
+Response: {
+  success: boolean,
+  data: {
+    downloadUrl: string,
+    filename: string,
+    expiresAt: string
+  }
+}
+
+POST   /admin/export/agencies               # Export agencies data
+POST   /admin/export/bookings               # Export bookings data
+POST   /admin/export/complaints             # Export complaints data
+
+## Real-time WebSocket Events
+
+WS     /admin/ws/notifications              # Real-time notifications
+Events: {
+  "notification": {
+    id: number,
+    type: string,
+    title: string,
+    message: string,
+    priority: string,
+    timestamp: string
+  },
+  "notification_read": {
+    notificationId: number
+  }
+}
+
+WS     /admin/ws/chat                       # Real-time chat messages
+Events: {
+  "new_message": {
+    conversationId: number,
+    message: {
+      id: number,
+      content: string,
+      sender: object,
+      timestamp: string
+    }
+  },
+  "message_read": {
+    messageId: number
+  }
+}
+
+WS     /admin/ws/dashboard                  # Real-time dashboard updates
+Events: {
+  "stats_update": {
+    totalUsers: number,
+    totalBookings: number,
+    totalRevenue: number,
+    // ... other stats
+  },
+  "new_activity": {
+    type: string,
+    message: string,
+    timestamp: string
+  }
+}
+
+WS     /admin/ws/user-activity              # Real-time user activity
+WS     /admin/ws/system-status              # Real-time system status
+
+## Server-Sent Events (SSE)
+
+GET    /admin/sse/notifications             # SSE for notifications
+Stream: {
+  event: "notification",
+  data: { /* notification object */ }
+}
+
+GET    /admin/sse/dashboard-metrics         # SSE for dashboard metrics
+Stream: {
+  event: "metrics_update",
+  data: { /* metrics object */ }
+}
+
+GET    /admin/sse/validation-queue          # SSE for validation updates
+GET    /admin/sse/complaint-updates         # SSE for complaint updates
+
+## GraphQL Endpoints
+
+POST   /admin/graphql                       # GraphQL endpoint
+Query Example: {
+  users(filter: { status: "active" }, pagination: { page: 1, limit: 10 }) {
+    data {
+      id
+      firstName
+      lastName
+      email
+      totalBookings
+    }
+    pagination {
+      totalPages
+      totalItems
+    }
+  }
+}
+
+Response: {
+  data: {
+    users: {
+      data: [ /* user objects */ ],
+      pagination: { /* pagination info */ }
+    }
+  }
+}
+GET    /admin/graphql                       # GraphQL playground (development only)
+
+## Health & Monitoring
+
+GET    /admin/health                        # API health check
+Response: {
+  success: boolean,
+  data: {
+    status: string, // "healthy", "degraded", "unhealthy"
+    timestamp: string,
+    uptime: number,
+    version: string,
+    services: {
+      database: string,
+      redis: string,
+      storage: string
+    }
+  }
+}
+
+GET    /admin/status                        # System status
+GET    /admin/metrics                       # System metrics
+Response: {
+  success: boolean,
+  data: {
+    requests: {
+      total: number,
+      perMinute: number,
+      errors: number
+    },
+    performance: {
+      averageResponseTime: number,
+      memoryUsage: number,
+      cpuUsage: number
+    },
+    database: {
+      connections: number,
+      queryTime: number
+    }
+  }
+}
+
+## Audit & Logs
+
+GET    /admin/audit-logs                    # Get audit logs with filters
+GET    /admin/audit-logs/:id                # Get specific audit log
+GET    /admin/system-logs                   # Get system logs
+GET    /admin/error-logs                    # Get error logs
+
+## Search & Filtering
+
+GET    /admin/search/users                  # Search users
+GET    /admin/search/agencies               # Search agencies
+GET    /admin/search/vehicles               # Search vehicles
+GET    /admin/search/bookings               # Search bookings
+GET    /admin/search/complaints             # Search complaints
+GET    /admin/search/global                 # Global search across all entities
+
+## Validation & Approval Workflows
+
+GET    /admin/validation/pending            # Get all pending validations
+POST   /admin/validation/batch-approve      # Batch approve multiple items
+POST   /admin/validation/batch-reject       # Batch reject multiple items
+GET    /admin/validation/history            # Get validation history
+
+## Backup & Data Management
+
+POST   /admin/backup/create                 # Create system backup
+GET    /admin/backup/list                   # List available backups
+POST   /admin/backup/restore                # Restore from backup
+GET    /admin/backup/status                 # Get backup status
+
+## Integration & External APIs
+
+GET    /admin/integrations                  # List configured integrations
+PUT    /admin/integrations/:service         # Update integration settings
+POST   /admin/integrations/:service/test    # Test integration connection
+GET    /admin/integrations/:service/logs    # Get integration logs
+
+## Error Response Format (All Endpoints)
+
+Error Response: {
+  success: false,
+  error: {
+    code: string, // "VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED", etc.
+    message: string,
+    details?: object,
+    timestamp: string
+  }
+}
+
+## Pagination Format (All List Endpoints)
+
+Pagination: {
+  currentPage: number,
+  totalPages: number,
+  totalItems: number,
+  itemsPerPage: number,
+  hasNextPage: boolean,
+  hasPreviousPage: boolean
+}
