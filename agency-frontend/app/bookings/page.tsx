@@ -1,5 +1,11 @@
-import { BookingManagement } from "@/components/booking-management"
+import { BookingManagement } from "@/components/booking-management";
+import { AppProvider } from "@/contexts/AppContext";
 
 export default function BookingsPage() {
-  return <BookingManagement />
+  return (
+    <AppProvider>
+      {" "}
+      <BookingManagement />
+    </AppProvider>
+  );
 }
