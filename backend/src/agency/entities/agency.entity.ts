@@ -25,4 +25,5 @@ export class Agency extends TimestampEntity {
     @OneToMany(() => Car, car => car.agency)
     cars: Car[];
 
+
 }

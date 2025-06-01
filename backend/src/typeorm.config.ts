@@ -14,5 +14,5 @@ export default new DataSource({
   entities: ["src/**/entities/*.entity{.ts,.js}"],
   driver: require("mysql2"),
   migrations: ["src/migrations/*{.ts,.js}"],
-  synchronize: false,
+  synchronize: true,
 });
