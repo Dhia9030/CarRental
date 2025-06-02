@@ -1,0 +1,104 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Complaint {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  id: ID!
+  title: String!
+  complainantType: String!
+  complainantUser: User
+  complainantAgency: Agency
+  againstUser: User
+  againstAgency: Agency
+  category: String!
+  priority: String!
+  status: String!
+  booking: Booking!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Agency {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  id: ID!
+  email: String!
+  username: String!
+  complaintsFiled: [Complaint!]
+  complaintsAgainst: [Complaint!]
+}
+
+type Booking {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  id: ID!
+  userId: User
+  startDate: DateTime!
+  endDate: DateTime!
+  status: BookingStatus!
+  cost: Float
+}
+
+enum BookingStatus {
+  Pending
+  Confirmed
+  Rejected
+}
+
+type User {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  role: String!
+  bookings: [Booking!]
+  complaints: [Complaint!]
+  complaintsAgainst: [Complaint!]
+}
+
+type Query {
+  users: [User!]!
+  user(id: Float!): User
+  agencies: [Agency!]!
+  agency(id: Float!): Agency
+  complaints: [Complaint!]!
+  complaint(id: Int!): Complaint!
+}
+
+type Mutation {
+  createComplaint(createComplaintInput: CreateComplaintInput!): Complaint!
+  updateComplaint(updateComplaintInput: UpdateComplaintInput!): Complaint!
+  removeComplaint(id: Int!): Complaint!
+}
+
+input CreateComplaintInput {
+  title: String!
+  complainantType: String!
+  complainantName: String!
+  against: String!
+  category: String!
+  priority: String!
+  status: String!
+}
+
+input UpdateComplaintInput {
+  title: String
+  complainantType: String
+  complainantName: String
+  against: String
+  category: String
+  priority: String
+  status: String
+  id: Int!
+}
