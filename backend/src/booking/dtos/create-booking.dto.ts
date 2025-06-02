@@ -15,8 +15,4 @@ export class CreateBookingDto {
   @IsOptional()
   @IsEnum(BookingStatus)
   status: BookingStatus;
-
-  @IsNumber()
-  @Min(0)
-  cost: number;
 }

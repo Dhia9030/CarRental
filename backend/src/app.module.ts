@@ -13,32 +13,40 @@ import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
-
+import { ComplaintsModule } from "./complaints/complaints.module";
+import { join } from "path";
+import { PaymentModule } from "./payment/payment.module";
+import { HealthModule } from "./health/health.module";
 @Module({
   imports: [
-
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+      playground: true, // Enables browser UI
+      introspection: true, // Required for playground in production
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ".env",
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        type: 'mysql',
-        host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
+        type: "mysql",
+        host: configService.get("DB_HOST"),
+        port: configService.get("DB_PORT"),
+        username: configService.get("DB_USERNAME"),
+        password: configService.get("DB_PASSWORD"),
+        database: configService.get("DB_DATABASE"),
         autoLoadEntities: true,
-        driver: require('mysql2'),
+        driver: require("mysql2"),
         synchronize: false,
-        migrationsRun:true,
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        migrationsRun: true,
+        entities: [__dirname + "/**/*.entity{.ts,.js}"],
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule, AuthModule, ChatModule,
+    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule, AuthModule, ChatModule,ComplaintsModule,PaymentModule,HealthModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver:ApolloDriver,
       autoSchemaFile: true,
@@ -47,6 +55,7 @@ import { GraphQLModule } from '@nestjs/graphql';
       introspection: true, 
       context: ({ req }) => ({ req }),
     }),
+
   ],
   controllers: [AppController],
   providers: [AppService],

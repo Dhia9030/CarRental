@@ -1,0 +1,110 @@
+-- Clear existing data (order matters due to foreign keys)
+SET FOREIGN_KEY_CHECKS = 0;
+DELETE FROM complaint;
+DELETE FROM user;
+DELETE FROM agency;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Reset auto-increment counters
+ALTER TABLE complaint AUTO_INCREMENT = 1;
+ALTER TABLE user AUTO_INCREMENT = 1;
+ALTER TABLE agency AUTO_INCREMENT = 1;
+
+-- Insert Users (20 users)
+INSERT INTO user (firstName, lastName, email, password, role, createdAt, updatedAt) VALUES
+('Ahmed', 'Ben Ali', 'ahmed.benali0@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Fatma', 'Trabelsi', 'fatma.trabelsi1@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Mohamed', 'Mejri', 'mohamed.mejri2@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Salma', 'Khelifi', 'salma.khelifi3@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Omar', 'Bouazizi', 'omar.bouazizi4@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Nour', 'Nasri', 'nour.nasri5@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Youssef', 'Chakroun', 'youssef.chakroun6@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Aya', 'Mahjoub', 'aya.mahjoub7@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Karim', 'Sassi', 'karim.sassi8@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Mariem', 'Gharbi', 'mariem.gharbi9@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Sami', 'Mzoughi', 'sami.mzoughi10@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Leila', 'Belhadj', 'leila.belhadj11@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Rami', 'Hammami', 'rami.hammami12@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Dorra', 'Jebali', 'dorra.jebali13@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Hedi', 'Zaouali', 'hedi.zaouali14@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Sabrine', 'Baccouche', 'sabrine.baccouche15@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Mehdi', 'Chedly', 'mehdi.chedly16@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Cyrine', 'Abidi', 'cyrine.abidi17@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'user', NOW(), NOW()),
+('Walid', 'Msakni', 'walid.msakni18@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'admin', NOW(), NOW()),
+('Sarra', 'Dridi', 'sarra.dridi19@example.com', '$2b$10$8K9wE5x2Q4vF7nR3mL6jO.HhyTcPxW1sA9dE2fG3hI4jK5lM6nO7p', 'admin', NOW(), NOW());
+
+-- Insert Agencies (20 agencies)
+INSERT INTO agency (email, password, username, createdAt, updatedAt) VALUES
+('contact@autorenttunisia.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'autorenttunisia_rental', NOW(), NOW()),
+('contact@carmaxrental.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'carmaxrental_rental', NOW(), NOW()),
+('contact@elitecarservice.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'elitecarservice_rental', NOW(), NOW()),
+('contact@desertmotors.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'desertmotors_rental', NOW(), NOW()),
+('contact@mediterraneanrentals.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'mediterraneanrentals_rental', NOW(), NOW()),
+('contact@saharaauto.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'saharaauto_rental', NOW(), NOW()),
+('contact@tuniscarcenter.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'tuniscarcenter_rental', NOW(), NOW()),
+('contact@olivetreerentals.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'olivetreerentals_rental', NOW(), NOW()),
+('contact@carthagemotors.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'carthagemotors_rental', NOW(), NOW()),
+('contact@phoenixcarrental.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'phoenixcarrental_rental', NOW(), NOW()),
+('contact@atlasautoservice.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'atlasautoservice_rental', NOW(), NOW()),
+('contact@jasminerentals.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'jasminerentals_rental', NOW(), NOW()),
+('contact@medinacarhub.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'medinacarhub_rental', NOW(), NOW()),
+('contact@coastalrentals.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'coastalrentals_rental', NOW(), NOW()),
+('contact@starmotorstunisia.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'starmotorstunisia_rental', NOW(), NOW()),
+('contact@goldenkeyrentals.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'goldenkeyrentals_rental', NOW(), NOW()),
+('contact@sunsetautoservice.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'sunsetautoservice_rental', NOW(), NOW()),
+('contact@royalcarrental.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'royalcarrental_rental', NOW(), NOW()),
+('contact@victorymotors.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'victorymotors_rental', NOW(), NOW()),
+('contact@primeautotunisia.tn', '$2b$10$9L0xF6y3R5wG8oS4nN7kP.IizUdQyX2tB0eF3gH4iJ5kL6mN7oP8q', 'primeautotunisia_rental', NOW(), NOW());
+
+-- Insert Complaints (30 complaints - mix of user vs agency and agency vs user)
+INSERT INTO complaint (title, complainantType, complainantUserId, complainantAgencyId, againstUserId, againstAgencyId, category, priority, status, createdAt, updatedAt) VALUES
+-- Users complaining against agencies
+('Véhicule sale à la livraison', 'Client', 1, NULL, NULL, 1, 'Véhicule', 'Haute', 'Ouverte', NOW(), NOW()),
+('Retard dans la livraison', 'Client', 2, NULL, NULL, 3, 'Livraison', 'Moyenne', 'En cours', NOW(), NOW()),
+('Problème mécanique non signalé', 'Client', 3, NULL, NULL, 5, 'Véhicule', 'Haute', 'Ouverte', NOW(), NOW()),
+('Frais cachés non mentionnés', 'Client', 4, NULL, NULL, 2, 'Facturation', 'Haute', 'En cours', NOW(), NOW()),
+('Service client irrespectueux', 'Client', 5, NULL, NULL, 7, 'Service Client', 'Moyenne', 'Résolue', NOW(), NOW()),
+('Véhicule différent de la réservation', 'Client', 6, NULL, NULL, 4, 'Réservation', 'Haute', 'Ouverte', NOW(), NOW()),
+('Dépôt de garantie non remboursé', 'Client', 7, NULL, NULL, 6, 'Facturation', 'Haute', 'En cours', NOW(), NOW()),
+('Kilométrage incorrect', 'Client', 8, NULL, NULL, 8, 'Véhicule', 'Basse', 'Résolue', NOW(), NOW()),
+('Équipements manquants', 'Client', 9, NULL, NULL, 9, 'Véhicule', 'Moyenne', 'Ouverte', NOW(), NOW()),
+('Annulation de dernière minute', 'Client', 10, NULL, NULL, 10, 'Réservation', 'Haute', 'En cours', NOW(), NOW()),
+('Facturation excessive', 'Client', 11, NULL, NULL, 11, 'Facturation', 'Moyenne', 'Ouverte', NOW(), NOW()),
+('Panne durant la location', 'Client', 12, NULL, NULL, 12, 'Maintenance', 'Haute', 'Résolue', NOW(), NOW()),
+('Véhicule endommagé non signalé', 'Client', 13, NULL, NULL, 13, 'Véhicule', 'Moyenne', 'En cours', NOW(), NOW()),
+('Personnel non professionnel', 'Client', 14, NULL, NULL, 14, 'Service Client', 'Basse', 'Ouverte', NOW(), NOW()),
+('Retard dans le retour de caution', 'Client', 15, NULL, NULL, 15, 'Facturation', 'Moyenne', 'Résolue', NOW(), NOW()),
+
+-- Agencies complaining against users
+('Client a endommagé le véhicule', 'Agency', NULL, 1, 16, NULL, 'Véhicule', 'Haute', 'Ouverte', NOW(), NOW()),
+('Retour tardif du véhicule', 'Agency', NULL, 2, 17, NULL, 'Réservation', 'Moyenne', 'En cours', NOW(), NOW()),
+('Paiement en retard', 'Agency', NULL, 3, 18, NULL, 'Facturation', 'Haute', 'Ouverte', NOW(), NOW()),
+('Conduite imprudente signalée', 'Agency', NULL, 4, 1, NULL, 'Service Client', 'Haute', 'En cours', NOW(), NOW()),
+('Véhicule rendu sale', 'Agency', NULL, 5, 2, NULL, 'Véhicule', 'Basse', 'Résolue', NOW(), NOW()),
+('Fausse déclaration sur le profil', 'Agency', NULL, 6, 3, NULL, 'Service Client', 'Moyenne', 'Ouverte', NOW(), NOW()),
+('Annulation abusive répétée', 'Agency', NULL, 7, 4, NULL, 'Réservation', 'Moyenne', 'En cours', NOW(), NOW()),
+('Refus de payer les frais additionnels', 'Agency', NULL, 8, 5, NULL, 'Facturation', 'Haute', 'Ouverte', NOW(), NOW()),
+('Comportement irrespectueux', 'Agency', NULL, 9, 6, NULL, 'Service Client', 'Basse', 'Résolue', NOW(), NOW()),
+('Utilisation non autorisée du véhicule', 'Agency', NULL, 10, 7, NULL, 'Véhicule', 'Haute', 'En cours', NOW(), NOW()),
+('Documents falsifiés', 'Agency', NULL, 11, 8, NULL, 'Service Client', 'Haute', 'Ouverte', NOW(), NOW()),
+('Vol d\'équipements du véhicule', 'Agency', NULL, 12, 9, NULL, 'Véhicule', 'Haute', 'En cours', NOW(), NOW()),
+('Conduite sous influence', 'Agency', NULL, 13, 10, NULL, 'Service Client', 'Haute', 'Résolue', NOW(), NOW()),
+('Dégradation intentionnelle', 'Agency', NULL, 14, 11, NULL, 'Véhicule', 'Haute', 'Ouverte', NOW(), NOW()),
+('Non-respect des conditions', 'Agency', NULL, 15, 12, NULL, 'Réservation', 'Moyenne', 'En cours', NOW(), NOW());
+
+-- Verify the data
+SELECT 'Users' as Table_Name, COUNT(*) as Count FROM user
+UNION ALL
+SELECT 'Agencies' as Table_Name, COUNT(*) as Count FROM agency
+UNION ALL
+SELECT 'Complaints' as Table_Name, COUNT(*) as Count FROM complaint;
+
+-- Show sample data
+SELECT 'Sample Users:' as Info;
+SELECT id, firstName, lastName, email, role FROM user LIMIT 5;
+
+SELECT 'Sample Agencies:' as Info;
+SELECT id, username, email FROM agency LIMIT 5;
+
+SELECT 'Sample Complaints:' as Info;
+SELECT id, title, complainantType, category, priority, status FROM complaint LIMIT 5;

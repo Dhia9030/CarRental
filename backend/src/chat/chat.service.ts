@@ -1,88 +1,91 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { UserService } from '../user/user.service';
-
-interface ClientInfo {
-    socket: Socket;
-    userId: number;
-    role: 'admin' | 'user';
-}
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateMessageDto } from './dtos/create-message.dto';
+import { Message } from './entities/message.entity';
+import { Conversation } from './entities/conversation.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class ChatService {
-    private clients = new Map<string, ClientInfo>();
-    private activeChats = new Map<number, number>(); // userId -> adminId
-
     constructor(
-        private readonly jwtService: JwtService,
-        private readonly userService: UserService,
+        @InjectRepository(Message)
+        private readonly messageRepository: Repository<Message>,
+        @InjectRepository(Conversation)
+        private readonly conversationRepository: Repository<Conversation>,
     ) { }
 
-    async registerClient(client: Socket, token: string) {
-        try {
-            const payload = this.jwtService.verify(token);
-            const user = await this.userService.findById(payload.sub);
+    async createMessage(createMessageDto: CreateMessageDto, sender: User): Promise<Message> {
+        const { content, conversationId } = createMessageDto;
 
-            if (!user) throw new UnauthorizedException();
+        const conversation = await this.conversationRepository.findOne({
+            where: { id: conversationId },
+            relations: ['user', 'admin'],
+        });
 
-            this.clients.set(client.id, {
-                socket: client,
-                userId: user.id,
-                role: user.role,
+        if (!conversation) {
+            throw new Error('Conversation not found');
+        }
+
+        const message = this.messageRepository.create({
+            content,
+            sender,
+            conversation,
+        });
+
+        return this.messageRepository.save(message);
+    }
+
+    async getMessages(conversationId: number): Promise<Message[]> {
+        return this.messageRepository.find({
+            where: { conversation: { id: conversationId } },
+            relations: ['sender'],
+            order: { createdAt: 'ASC' },
+        });
+    }
+
+    async findOrCreateConversation(userId: number, adminId: number): Promise<Conversation> {
+        let conversation = await this.conversationRepository.findOne({
+            where: {
+                user: { id: userId },
+                admin: { id: adminId },
+                isActive: true
+            },
+            relations: ['user', 'admin'],
+        });
+
+        if (!conversation) {
+            conversation = this.conversationRepository.create({
+                user: { id: userId },
+                admin: { id: adminId },
             });
-
-            console.log(`User ${user.id} connected as ${user.role}`);
-        } catch (err) {
-            client.disconnect();
-        }
-    }
-
-    removeClient(client: Socket) {
-        this.clients.delete(client.id);
-    }
-
-    assignAdminToUser(client: Socket) {
-        const clientInfo = this.clients.get(client.id);
-        if (!clientInfo || clientInfo.role !== 'user') return;
-
-        const availableAdminEntry = [...this.clients.entries()].find(
-            ([_, info]) => info.role === 'admin' && ![...this.activeChats.values()].includes(info.userId),
-        );
-
-        if (!availableAdminEntry) {
-            client.emit('noAdminsAvailable');
-            return;
+            await this.conversationRepository.save(conversation);
         }
 
-        const [adminSocketId, adminInfo] = availableAdminEntry;
-        this.activeChats.set(clientInfo.userId, adminInfo.userId);
-
-        client.emit('matched', { adminId: adminInfo.userId });
-        adminInfo.socket.emit('matched', { userId: clientInfo.userId });
+        return conversation;
     }
 
-    handleMessage(senderSocket: Socket, content: string) {
-        const senderInfo = this.clients.get(senderSocket.id);
-        if (!senderInfo) return;
+    async getUserConversations(userId: number): Promise<Conversation[]> {
+        return this.conversationRepository.find({
+            where: { user: { id: userId } },
+            relations: ['user', 'admin'],
+        });
+    }
 
-        const recipientId =
-            senderInfo.role === 'user'
-                ? this.activeChats.get(senderInfo.userId)
-                : [...this.activeChats.entries()].find(([, adminId]) => adminId === senderInfo.userId)?.[0];
+    async getAdminConversations(adminId: number): Promise<Conversation[]> {
+        return this.conversationRepository.find({
+            where: { admin: { id: adminId } },
+            relations: ['user', 'admin'],
+        });
+    }
 
-        if (!recipientId) return;
-
-        const recipientSocketEntry = [...this.clients.entries()].find(
-            ([_, info]) => info.userId === recipientId,
-        );
-
-        if (recipientSocketEntry) {
-            const [_, recipientInfo] = recipientSocketEntry;
-            recipientInfo.socket.emit('receiveMessage', {
-                from: senderInfo.userId,
-                content,
-            });
-        }
+    async markMessagesAsRead(conversationId: number, userId: number): Promise<void> {
+        await this.messageRepository
+            .createQueryBuilder()
+            .update(Message)
+            .set({ isRead: true })
+            .where('conversationId = :conversationId', { conversationId })
+            .andWhere('senderId != :userId', { userId })
+            .execute();
     }
 }
