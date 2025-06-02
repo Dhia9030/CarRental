@@ -14,7 +14,9 @@ import { ComplaintsModule } from "./complaints/complaints.module";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
-
+import { PaymentModule } from "./payment/payment.module";
+import { HealthModule } from "./health/health.module";
+import { ChatModule } from "./chat/chat.module";
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -38,7 +40,8 @@ import { join } from "path";
         database: configService.get("DB_DATABASE"),
         autoLoadEntities: true,
         driver: require("mysql2"),
-        synchronize: true,
+        synchronize: false,
+        migrationsRun: true,
         entities: [__dirname + "/**/*.entity{.ts,.js}"],
       }),
       inject: [ConfigService],
@@ -51,6 +54,9 @@ import { join } from "path";
     EventsModule,
     AuthModule,
     ComplaintsModule,
+    PaymentModule,
+    HealthModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

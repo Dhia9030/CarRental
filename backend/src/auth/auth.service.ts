@@ -36,10 +36,20 @@ export class AuthService {
         return null;
     }
 
-    async login(user: any) {
-        const payload = { email: user.email, sub: user.id };
-        return {
-            access_token: this.jwtService.sign(payload),
-        };
+    async login(user: any , role : string) {
+        if(role === 'Agency') {
+            const payload = { agencyEmail: user.email, sub: user.id };
+            return {
+                access_token: this.jwtService.sign(payload),
+            }; 
+        }
+        if(role === 'User') {
+            const payload = { email: user.email, sub: user.id , role : user.role };
+            console.log("cbon")
+            return {
+                access_token: this.jwtService.sign(payload),
+            };
+        }
+        
     }
 }

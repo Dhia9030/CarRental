@@ -16,6 +16,7 @@ import { ObjectType, Field, ID } from "@nestjs/graphql";
 @Entity()
 @Unique(["email"])
 //@Unique(["username"])
+
 export class Agency extends TimestampEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
@@ -33,6 +34,7 @@ export class Agency extends TimestampEntity {
   })
   password: string;
 
+
   @Field()
   @Column({ type: "varchar", length: 100, nullable: false, unique: true })
   username: string;
@@ -48,4 +50,6 @@ export class Agency extends TimestampEntity {
   @Field(() => [Complaint], { nullable: true })
   @OneToMany(() => Complaint, (complaint) => complaint.againstAgency)
   complaintsAgainst: Complaint[];
+
+
 }

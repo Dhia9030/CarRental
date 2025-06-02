@@ -32,6 +32,4 @@ export class CreateCarDto {
     @Min(1)
     seat: number;
 
-    @IsInt()
-    agencyId: number;
 }

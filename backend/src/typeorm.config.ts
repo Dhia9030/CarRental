@@ -15,4 +15,5 @@ export default new DataSource({
   driver: require("mysql2"),
   migrations: ["src/migrations/*{.ts,.js}"],
   synchronize: false,
+
 });
