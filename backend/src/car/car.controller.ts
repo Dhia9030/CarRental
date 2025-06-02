@@ -10,7 +10,6 @@ import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 
 
 @Controller('cars')
-@UseGuards(JwtAuthGuard)
 export class CarController {
   constructor(
     private readonly carService: CarService,

@@ -1,3 +1,4 @@
+
 import { Booking } from "src/booking/entities/booking.entity";
 import { Review } from "src/review/entities/review.entity";
 import {
@@ -13,12 +14,15 @@ import { UserRole } from "../enums/role.enum";
 import { TimestampEntity } from "src/Generics/timestamp.entity";
 import { Exclude } from "class-transformer";
 import { Complaint } from "src/complaints/entities/complaint.entity";
-import { ObjectType, Field, ID } from "@nestjs/graphql";
+import { ObjectType, Field, ID,Int } from "@nestjs/graphql";
 @ObjectType()
 @Entity()
 @Unique(["email"])
 export class User extends TimestampEntity {
+
+
   @Field(() => ID)
+
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -33,6 +37,7 @@ export class User extends TimestampEntity {
     select: false, // do not select password by default
   })
   password: string;
+
 
   @Field()
   @Column({ type: "varchar", length: 100, nullable: false })
@@ -50,7 +55,7 @@ export class User extends TimestampEntity {
   })
   role: UserRole;
 
-  //@Field(() => [Review], { nullable: true })
+  @Field(()=>[Review])
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
 
