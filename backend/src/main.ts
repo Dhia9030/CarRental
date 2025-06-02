@@ -10,6 +10,6 @@ async function bootstrap() {
     origin: "http://localhost:3000", // replace with your frontend's URL
     credentials: true, // if you send cookies or auth headers
   });
-  await app.listen(3001);
+  await app.listen(3000);
 }
 bootstrap();
