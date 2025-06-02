@@ -3,6 +3,33 @@
  *
  * This file contains all API interaction functions for the client-facing application.
  * It connects to the same backend as the agency frontend but with client-specific endpoints.
+ *
+ * ⚠️  ARCHITECTURAL ISSUES AND STATUS:
+ *
+ * ✅ COMPLETED:
+ * - Authentication endpoints updated to match backend (/auth/UserLogin, /auth/UserRegister)
+ * - API base URL updated to http://localhost:3000 (matches backend port)
+ * - Token response handling updated (access_token instead of token)
+ * - User profile endpoint updated (/user/profile)
+ * - Booking endpoints aligned with backend structure
+ * - Review endpoints updated to match backend (/reviews/user/my-reviews, /reviews/car/:carId)
+ * - Payment endpoints updated to match payment integration structure
+ *
+ * ❌ ARCHITECTURAL MISMATCH - REQUIRES BACKEND CHANGES:
+ * - Car browsing endpoints: Backend requires AGENCY role authentication for ALL car operations
+ * - Client users need public access to browse cars, but backend has no public car endpoints
+ * - Solutions:
+ *   1. Add public car browsing endpoints to backend (recommended)
+ *   2. Implement car aggregation service
+ *   3. Use mock data for development
+ *
+ * 🔧 ENDPOINTS ALIGNMENT STATUS:
+ * - Authentication: ✅ Aligned with backend
+ * - User Management: ✅ Aligned with backend
+ * - Bookings: ✅ Aligned with backend (POST /bookings/add, GET /bookings/user/filter/date-range)
+ * - Reviews: ✅ Aligned with backend (Public: GET /reviews/car/:carId, Protected: POST /reviews, GET /reviews/user/my-reviews)
+ * - Payments: ✅ Aligned with backend payment integration
+ * - Cars: ❌ BLOCKED - All endpoints require AGENCY authentication
  */
 
 import {
@@ -20,7 +47,7 @@ import {
 } from "@/types/api";
 
 // Base URL for API requests - update this to match your backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 // Generic fetch function with error handling and authentication
 async function fetchAPI<T>(
@@ -59,7 +86,7 @@ async function fetchAPI<T>(
 // Authentication API
 export const authAPI = {
   login: (credentials: { email: string; password: string }) =>
-    fetchAPI<{ token: string; user: User }>("/auth/user/login", {
+    fetchAPI<{ access_token: string; user: User }>("/auth/UserLogin", {
       method: "POST",
       body: JSON.stringify(credentials),
     }),
@@ -71,7 +98,7 @@ export const authAPI = {
     password: string;
     phone?: string;
   }) =>
-    fetchAPI<{ token: string; user: User }>("/auth/user/register", {
+    fetchAPI<{ access_token: string; user: User }>("/auth/UserRegister", {
       method: "POST",
       body: JSON.stringify(userData),
     }),
@@ -90,6 +117,8 @@ export const authAPI = {
 
   verifyToken: () => fetchAPI<{ user: User }>("/auth/verify"),
 
+  getProfile: () => fetchAPI<User>("/user/profile"),
+
   logout: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth_token");
@@ -99,8 +128,16 @@ export const authAPI = {
 };
 
 // Cars API - for browsing and searching cars
+// NOTE: Backend car endpoints require AGENCY authentication.
+// For client car browsing, consider implementing public endpoints or using mock data.
 export const carsAPI = {
+  // IMPORTANT: All car endpoints in backend require AGENCY role authentication
+  // This is an architectural mismatch - clients need public car browsing
+  // Consider implementing public endpoints on backend or using mock data
   getAllCars: (filters?: SearchFilters) => {
+    console.warn(
+      "Car endpoints require AGENCY authentication - consider implementing public car browsing endpoints"
+    );
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -119,24 +156,40 @@ export const carsAPI = {
     );
   },
 
-  getCarById: (id: string) => fetchAPI<Car>(`/cars/${id}`),
+  getCarById: (id: string) => {
+    console.warn(
+      "Car endpoints require AGENCY authentication - consider implementing public car browsing endpoints"
+    );
+    return fetchAPI<Car>(`/cars/${id}`);
+  },
 
-  searchCars: (filters: SearchFilters) =>
-    fetchAPI<PaginatedResponse<Car>>("/cars/search", {
+  searchCars: (filters: SearchFilters) => {
+    console.warn(
+      "Car endpoints require AGENCY authentication - consider implementing public car browsing endpoints"
+    );
+    return fetchAPI<PaginatedResponse<Car>>("/cars/search", {
       method: "POST",
       body: JSON.stringify(filters),
-    }),
+    });
+  },
 
   getAvailableCars: (startDate: string, endDate: string, location?: string) => {
+    console.warn(
+      "Car endpoints require AGENCY authentication - consider implementing public car browsing endpoints"
+    );
     const params = new URLSearchParams({ startDate, endDate });
     if (location) params.append("location", location);
     return fetchAPI<Car[]>(`/cars/available?${params.toString()}`);
   },
 
-  getCarReviews: (carId: string) =>
-    fetchAPI<Review[]>(`/cars/${carId}/reviews`),
+  getCarReviews: (carId: string) => fetchAPI<Review[]>(`/reviews/car/${carId}`),
 
-  getFeaturedCars: () => fetchAPI<Car[]>("/cars/featured"),
+  getFeaturedCars: () => {
+    console.warn(
+      "Car endpoints require AGENCY authentication - consider implementing public car browsing endpoints"
+    );
+    return fetchAPI<Car[]>("/cars/featured");
+  },
 };
 
 // Bookings API - for managing user bookings
@@ -202,7 +255,7 @@ export const reviewsAPI = {
       method: "DELETE",
     }),
 
-  getUserReviews: () => fetchAPI<Review[]>("/reviews/user"),
+  getUserReviews: () => fetchAPI<Review[]>("/reviews/user/my-reviews"),
 };
 
 // Payments API - for processing payments
@@ -214,7 +267,7 @@ export const paymentsAPI = {
     }),
 
   getPaymentStatus: (paymentId: string) =>
-    fetchAPI<PaymentStatus>(`/payments/${paymentId}/status`),
+    fetchAPI<PaymentStatus>(`/payment-integration/status/${paymentId}`),
 
   getPaymentHistory: () =>
     fetchAPI<PaymentStatus[]>("/payment-integration/history"),
@@ -227,6 +280,11 @@ export const paymentsAPI = {
       securityDeposit: number;
       total: number;
     }>(`/payment-integration/breakdown/${bookingId}`),
+
+  generateInvoice: (paymentId: string) =>
+    fetchAPI<{ invoiceUrl: string }>(
+      `/payment-integration/invoice/${paymentId}`
+    ),
 };
 
 // User Profile API
@@ -301,4 +359,78 @@ export const supportAPI = {
 // Health check
 export const healthAPI = {
   check: () => fetchAPI<{ status: string; timestamp: string }>("/health"),
+};
+
+// Additional API functions
+export const getUserProfile = () =>
+  fetchAPI<ApiResponse<User>>("/user/profile");
+
+export const updateUserProfile = (userData: Partial<User>) =>
+  fetchAPI<ApiResponse<User>>("/user/profile", {
+    method: "PUT",
+    body: JSON.stringify(userData),
+  });
+
+export const getUserBookings = () =>
+  fetchAPI<ApiResponse<Booking[]>>("/bookings/user");
+
+export const cancelBooking = (bookingId: string) =>
+  fetchAPI<ApiResponse<{ message: string }>>(`/bookings/${bookingId}/cancel`, {
+    method: "POST",
+  });
+
+export const getUserReviews = () =>
+  fetchAPI<ApiResponse<Review[]>>("/reviews/user/my-reviews");
+
+export const createReview = (reviewData: {
+  carId: string;
+  bookingId: string;
+  rating: number;
+  comment?: string;
+}) =>
+  fetchAPI<ApiResponse<Review>>("/reviews", {
+    method: "POST",
+    body: JSON.stringify(reviewData),
+  });
+
+export const updateReview = (
+  reviewId: string,
+  reviewData: {
+    rating: number;
+    comment?: string;
+  }
+) =>
+  fetchAPI<ApiResponse<Review>>(`/reviews/${reviewId}`, {
+    method: "PUT",
+    body: JSON.stringify(reviewData),
+  });
+
+export const deleteReview = (reviewId: string) =>
+  fetchAPI<ApiResponse<{ message: string }>>(`/reviews/${reviewId}`, {
+    method: "DELETE",
+  });
+
+export const createComplaint = (complaintData: {
+  subject: string;
+  description: string;
+  priority: "low" | "medium" | "high";
+}) =>
+  fetchAPI<ApiResponse<{ complaintId: string }>>("/complaints", {
+    method: "POST",
+    body: JSON.stringify(complaintData),
+  });
+
+export const getUserComplaints = () =>
+  fetchAPI<ApiResponse<any[]>>("/complaints/user");
+
+// Convenience API object for easier imports
+export const api = {
+  auth: authAPI,
+  cars: carsAPI,
+  bookings: bookingsAPI,
+  reviews: reviewsAPI,
+  payments: paymentsAPI,
+  support: supportAPI,
+  health: healthAPI,
+  user: userAPI,
 };

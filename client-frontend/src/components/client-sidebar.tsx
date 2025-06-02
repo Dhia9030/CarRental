@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const mainMenuItems = [
   {
@@ -112,10 +113,10 @@ const supportMenuItems = [
 export function ClientSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("client_token");
-    window.location.href = "/auth";
+    logout();
   };
 
   const renderMenuItems = (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, User, Settings, HelpCircle } from "lucide-react";
+import { Bell, User, Settings, HelpCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +14,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
 
 export function ClientHeader() {
   const [notificationCount] = useState(2);
+  const { user, logout } = useAuth();
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 border-b border-slate-200/60 shadow-sm">
       <div className="flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
@@ -66,41 +69,47 @@ export function ClientHeader() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg mb-2">
+            <DropdownMenuContent className="w-64 p-2" align="end" forceMount>              <DropdownMenuLabel className="font-normal p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg mb-2">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src="/placeholder-user.jpg" alt="User" />
+                    <AvatarImage src={user?.avatar || "/placeholder-user.jpg"} alt="User" />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                      <User className="h-5 w-5" />
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-semibold leading-none">
-                      John Doe
+                      {user?.firstName} {user?.lastName}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      john.doe@example.com
+                      {user?.email}
                     </p>
                   </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer hover:bg-slate-50 transition-colors rounded-md">
-                <User className="mr-2 h-4 w-4" />
-                Profile
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-slate-50 transition-colors rounded-md">
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer hover:bg-slate-50 transition-colors rounded-md">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-slate-50 transition-colors rounded-md">
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Help & Support
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-slate-50 transition-colors rounded-md">
+                <Link href="/support">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Help & Support
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer hover:bg-red-50 text-red-600 transition-colors rounded-md">
-                <User className="mr-2 h-4 w-4" />
+              <DropdownMenuItem 
+                onClick={logout}
+                className="cursor-pointer hover:bg-red-50 text-red-600 transition-colors rounded-md"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
