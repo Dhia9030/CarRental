@@ -3,10 +3,12 @@ import { CreateCarDto } from "./dtos/create-car.dto";
 import { UpdateCarDto } from "./dtos/update-car.dto";
 import { Car } from "./entities/car.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Injectable } from "@nestjs/common";
 import { urlToHttpOptions } from "url";
 import { ForbiddenException } from "@nestjs/common";
 
 
+@Injectable()
 export class CarService{
 
     constructor(
@@ -21,8 +23,8 @@ export class CarService{
         return this.carRepository.save(car);
 }
 
-findByAgency(agencyId: number) {
-  return this.carRepository.find({ where: { agency: { id: agencyId } } });
+findByAgency(agencyId: number):Promise<Car[]> {
+  return this.carRepository.find({ where: { agency: { id: agencyId } } ,relations:['reviews']});
 }
 
 async update(id: number, updateCarDto: UpdateCarDto, agencyId: number) {

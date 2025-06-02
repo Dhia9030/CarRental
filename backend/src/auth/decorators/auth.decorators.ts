@@ -1,4 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { Role } from '../enums/role.enum';
 
 
 export const Agency = createParamDecorator(
@@ -6,10 +7,11 @@ export const Agency = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
     
     // Only return the agency data if it exists
-    if (request.user && request.user.agencyEmail) {
+    if (request.user && request.user.role===Role.AGENCY) {
       return {
         agencyId: request.user.agencyId,
-        agencyEmail: request.user.agencyEmail
+        agencyEmail: request.user.agencyEmail,
+        role : request.user.role
       };
     }
     

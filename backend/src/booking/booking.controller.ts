@@ -61,7 +61,6 @@ export class BookingController {
     }
     @Roles(Role.AGENCY)
     @UseGuards(RolesGuard)
-
     @Get('agency/filter/date-range')
     async findByDateRangeAgency(
         @Query('startDate') startDate: string,

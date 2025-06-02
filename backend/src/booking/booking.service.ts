@@ -8,6 +8,7 @@ import { Between } from "typeorm";
 import { BookingStatus } from "./entities/booking.entity";
 import { EventsService } from "../events/events.service";
 import { Car } from "../car/entities/car.entity";
+import { BookingEventType } from "src/events/booking.events";
 
 @Injectable()
 export class BookingService {
@@ -23,12 +24,35 @@ export class BookingService {
     createBookingDto: CreateBookingDto,
     userId: number
   ): Promise<Booking> {
+
+    const startDate = new Date(createBookingDto.startDate);
+    const endDate = new Date(createBookingDto.endDate);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const maxDate = new Date(today);
+    maxDate.setMonth(today.getMonth() + 12);
+
+    if(startDate < today){
+      throw new ForbiddenException("Start date must be today or a future date");
+    }
+    if(endDate < startDate){
+      throw new ForbiddenException("End date must be after start date");
+    }
+    if(endDate > maxDate){
+      throw new ForbiddenException("Booking end date cannot be more than 12 months in the future")
+    }
+
     console.log(createBookingDto);
     const isAvailable = await this.isCarAvailable(
       createBookingDto.carId,
-      new Date(createBookingDto.startDate),
-      new Date(createBookingDto.endDate)
+      startDate,
+      endDate
     );
+
+
+
+
     if (!isAvailable) {
       throw new ForbiddenException(
         "Car is not available for the requested dates"
@@ -44,8 +68,6 @@ export class BookingService {
     }
 
     // Calculate booking duration in days
-    const startDate = new Date(createBookingDto.startDate);
-    const endDate = new Date(createBookingDto.endDate);
     const durationInMs = endDate.getTime() - startDate.getTime();
     const durationInDays = Math.ceil(durationInMs / (1000 * 60 * 60 * 24));
     const cost = durationInDays * car.pricePerDay;
@@ -64,7 +86,10 @@ export class BookingService {
       where: { id: savedBooking.id },
       relations: ["car", "car.agency"],
     });
-    this.eventsService.emitBookingCreated(completeBooking);
+    if (!completeBooking) {
+      throw new ForbiddenException("Booking not found");
+    }
+    this.eventsService.emitBookingEvent(completeBooking , BookingEventType.BOOKING_CREATED);
 
     return savedBooking;
   }
@@ -127,7 +152,15 @@ export class BookingService {
       }
     }
 
-    await this.bookingRepository.update(id, { status });
+    const savedBooking = await this.bookingRepository.update(id, { status });
+    const completeBooking = await this.bookingRepository.findOne({
+      where: { id: id },
+      relations: ["car", "car.agency"],
+    });
+    if (!completeBooking) {
+      throw new ForbiddenException("Booking not found");
+    }
+    this.eventsService.emitBookingEvent(completeBooking  , BookingEventType.BOOKING_UPDATED);
   }
 
   async remove(id: number , agencyId : number): Promise<void> {

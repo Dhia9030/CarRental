@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module  } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UserModule } from "./user/user.module";
@@ -16,6 +16,7 @@ import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 import { PaymentModule } from "./payment/payment.module";
 import { HealthModule } from "./health/health.module";
+import { ChatModule } from "./chat/chat.module";
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -39,7 +40,7 @@ import { HealthModule } from "./health/health.module";
         database: configService.get("DB_DATABASE"),
         autoLoadEntities: true,
         driver: require("mysql2"),
-        synchronize: false,
+        synchronize: true,
         migrationsRun: true,
         entities: [__dirname + "/**/*.entity{.ts,.js}"],
       }),
@@ -55,8 +56,9 @@ import { HealthModule } from "./health/health.module";
     ComplaintsModule,
     PaymentModule,
     HealthModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
