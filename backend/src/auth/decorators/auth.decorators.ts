@@ -10,7 +10,8 @@ export const Agency = createParamDecorator(
     if (request.user && request.user.role===Role.AGENCY) {
       return {
         agencyId: request.user.agencyId,
-        agencyEmail: request.user.agencyEmail
+        agencyEmail: request.user.agencyEmail,
+        role : request.user.role
       };
     }
     
