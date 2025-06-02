@@ -5,9 +5,9 @@ export class ProcessBookingPaymentDto {
   @IsNumber()
   bookingId: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  paymentMethodId: string; // Stripe payment method ID
+  paymentMethodId?: string; // Mock payment method ID (optional for testing)
 
   @IsOptional()
   @IsNumber()

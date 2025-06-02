@@ -6,13 +6,8 @@ import {
   Param,
   Body,
   Query,
-  UseGuards,
-  Req,
-  Headers,
-  RawBodyRequest,
   HttpCode,
   HttpStatus,
-  BadRequestException,
 } from "@nestjs/common";
 import { PaymentService } from "./payment.service";
 import { CreatePaymentDto } from "./dtos/create-payment.dto";
@@ -24,6 +19,36 @@ import { PaymentStatus } from "./enums/payment-status.enum";
 @Controller("payments")
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
+
+  @Get(":id")
+  async findById(@Param("id") id: number) {
+    return await this.paymentService.findById(+id);
+  }
+
+  @Get("booking/:bookingId")
+  async findByBooking(@Param("bookingId") bookingId: number) {
+    return await this.paymentService.findByBooking(+bookingId);
+  }
+
+  @Get("user/:userId")
+  async findByUser(@Param("userId") userId: number) {
+    return await this.paymentService.findByUser(+userId);
+  }
+
+  @Get()
+  async findAll(
+    @Query("status") status?: PaymentStatus,
+    @Query("userId") userId?: number,
+    @Query("bookingId") bookingId?: number
+  ) {
+    if (bookingId) {
+      return await this.paymentService.findByBooking(+bookingId);
+    }
+    if (userId) {
+      return await this.paymentService.findByUser(+userId);
+    }
+    return await this.paymentService.findAll();
+  }
 
   @Post("process-booking")
   async processBookingPayment(@Body() dto: ProcessBookingPaymentDto) {
@@ -61,49 +86,12 @@ export class PaymentController {
     await this.paymentService.updatePayment(+id, dto);
     return { message: "Payment updated successfully" };
   }
-
-  @Get(":id")
-  async findById(@Param("id") id: number) {
-    return await this.paymentService.findById(+id);
-  }
-
-  @Get("booking/:bookingId")
-  async findByBooking(@Param("bookingId") bookingId: number) {
-    return await this.paymentService.findByBooking(+bookingId);
-  }
-
-  @Get("user/:userId")
-  async findByUser(@Param("userId") userId: number) {
-    return await this.paymentService.findByUser(+userId);
-  }
-
-  @Get()
-  async findAll(
-    @Query("status") status?: PaymentStatus,
-    @Query("userId") userId?: number,
-    @Query("bookingId") bookingId?: number
-  ) {
-    if (bookingId) {
-      return await this.paymentService.findByBooking(+bookingId);
-    }
-    if (userId) {
-      return await this.paymentService.findByUser(+userId);
-    }
-    return await this.paymentService.findAll();
-  }
-  // Stripe webhook endpoint
+  // Mock webhook endpoint for development/testing
   @Post("webhook")
   @HttpCode(HttpStatus.OK)
-  async handleStripeWebhook(
-    @Headers("stripe-signature") signature: string,
-    @Req() req: RawBodyRequest<Request>
-  ) {
-    if (!req.rawBody) {
-      throw new BadRequestException(
-        "Raw body is required for webhook verification"
-      );
-    }
-    await this.paymentService.handleStripeWebhook(signature, req.rawBody);
-    return { received: true };
+  async handleMockWebhook(@Body() body: { eventType: string; data: any }) {
+    console.log(`🎭 Received mock webhook:`, body);
+    await this.paymentService.handleMockWebhook(body.eventType, body.data);
+    return { received: true, message: "Mock webhook processed successfully" };
   }
 }

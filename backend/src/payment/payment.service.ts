@@ -7,7 +7,6 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
-import Stripe from "stripe";
 import { Payment } from "./entities/payment.entity";
 import { Transaction } from "./entities/transaction.entity";
 import { Booking } from "../booking/entities/booking.entity";
@@ -24,7 +23,6 @@ import { BookingStatus } from "../booking/entities/booking.entity";
 
 @Injectable()
 export class PaymentService {
-  private stripe: Stripe;
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
@@ -33,16 +31,22 @@ export class PaymentService {
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     private readonly configService: ConfigService
-  ) {
-    const stripeKey = this.configService.get<string>("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is required");
-    }
-    this.stripe = new Stripe(stripeKey, {
-      apiVersion: "2025-05-28.basil",
-    });
+  ) {}
+
+  // Mock payment intent generator
+  private generateMockPaymentIntentId(): string {
+    return `pi_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
+  // Mock charge ID generator
+  private generateMockChargeId(): string {
+    return `ch_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  // Mock refund ID generator
+  private generateMockRefundId(): string {
+    return `re_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
   async processBookingPayment(
     dto: ProcessBookingPaymentDto
   ): Promise<{ payment: Payment; clientSecret: string | null }> {
@@ -68,27 +72,20 @@ export class PaymentService {
     const totalAmount = bookingAmount + securityDepositAmount;
 
     try {
-      // Create payment intent for the total amount
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(totalAmount * 100), // Convert to cents
-        currency: "usd",
-        payment_method: dto.paymentMethodId,
-        customer: booking.user.email,
-        confirmation_method: "manual",
-        confirm: false,
-        description:
-          dto.customDescription ||
-          `Car rental payment for booking #${booking.id}`,
-        metadata: {
-          bookingId: booking.id.toString(),
-          userId: booking.user.id.toString(),
-          carId: booking.car.id.toString(),
-          bookingAmount: bookingAmount.toString(),
-          securityDepositAmount: securityDepositAmount.toString(),
-          startDate: booking.startDate.toISOString(),
-          endDate: booking.endDate.toISOString(),
-        },
-      });
+      // Create mock payment intent for the total amount
+      const mockPaymentIntentId = this.generateMockPaymentIntentId();
+      const mockClientSecret = `${mockPaymentIntentId}_secret_mock`;
+
+      console.log(`🎭 MOCK PAYMENT PROCESSING:
+        📋 Booking ID: ${booking.id}
+        💰 Booking Amount: $${bookingAmount}
+        🔒 Security Deposit: $${securityDepositAmount}
+        💳 Total Amount: $${totalAmount}
+        📅 Duration: ${totalDays} days
+        🚗 Car: ${booking.car.model}
+        👤 Customer: ${booking.user.email}
+        🆔 Mock Payment Intent: ${mockPaymentIntentId}
+      `);
 
       // Create booking payment record
       const bookingPayment = await this.createPayment({
@@ -117,20 +114,20 @@ export class PaymentService {
         },
       });
 
-      // Update payment records with Stripe payment intent ID
+      // Update payment records with mock payment intent ID
       await this.updatePayment(bookingPayment.id, {
-        stripePaymentIntentId: paymentIntent.id,
+        stripePaymentIntentId: mockPaymentIntentId,
         status: PaymentStatus.PENDING,
       });
 
       await this.updatePayment(securityPayment.id, {
-        stripePaymentIntentId: paymentIntent.id,
+        stripePaymentIntentId: mockPaymentIntentId,
         status: PaymentStatus.PENDING,
       });
 
       return {
         payment: bookingPayment,
-        clientSecret: paymentIntent.client_secret,
+        clientSecret: mockClientSecret,
       };
     } catch (error) {
       throw new InternalServerErrorException(
@@ -138,86 +135,88 @@ export class PaymentService {
       );
     }
   }
-
   async confirmPayment(paymentIntentId: string): Promise<Payment[]> {
     try {
-      // Confirm the payment intent
-      const paymentIntent =
-        await this.stripe.paymentIntents.confirm(paymentIntentId);
+      // Mock payment confirmation - simulate successful payment
+      const mockChargeId = this.generateMockChargeId();
 
-      if (paymentIntent.status === "succeeded") {
-        // Find all payments associated with this payment intent
-        const payments = await this.paymentRepository.find({
-          where: { stripePaymentIntentId: paymentIntentId },
-          relations: ["booking"],
-        });
-        const updatedPayments: Payment[] = [];
+      console.log(`🎭 MOCK PAYMENT CONFIRMATION:
+        🆔 Payment Intent: ${paymentIntentId}
+        ✅ Status: SUCCEEDED
+        💳 Mock Charge ID: ${mockChargeId}
+      `);
 
-        for (const payment of payments) {
-          // Update payment status
-          await this.updatePayment(payment.id, {
-            status: PaymentStatus.COMPLETED,
-            stripeChargeId: paymentIntent.latest_charge as string,
-          });
+      // Find all payments associated with this payment intent
+      const payments = await this.paymentRepository.find({
+        where: { stripePaymentIntentId: paymentIntentId },
+        relations: ["booking"],
+      });
 
-          // Create transaction record
-          await this.createTransaction({
-            paymentId: payment.id,
-            amount: payment.amount,
-            type: TransactionType.CHARGE,
-            stripeTransactionId: paymentIntent.id,
-            status: "succeeded",
-            description: `Payment confirmed for ${payment.type}`,
-            stripeResponse: paymentIntent,
-          });
-
-          const updatedPayment = await this.findById(payment.id);
-          updatedPayments.push(updatedPayment);
-        }
-
-        // Update booking status to confirmed if booking payment is successful
-        const bookingPayment = payments.find(
-          (p) => p.type === PaymentType.BOOKING_PAYMENT
+      if (payments.length === 0) {
+        throw new NotFoundException(
+          "No payments found for this payment intent"
         );
-        if (bookingPayment) {
-          await this.bookingRepository.update(bookingPayment.bookingId, {
-            status: BookingStatus.Confirmed,
-          });
-        }
+      }
 
-        return updatedPayments;
-      } else {
-        // Handle failed payment
-        const payments = await this.paymentRepository.find({
-          where: { stripePaymentIntentId: paymentIntentId },
+      const updatedPayments: Payment[] = [];
+
+      for (const payment of payments) {
+        // Update payment status
+        await this.updatePayment(payment.id, {
+          status: PaymentStatus.COMPLETED,
+          stripeChargeId: mockChargeId,
         });
 
-        for (const payment of payments) {
-          await this.updatePayment(payment.id, {
-            status: PaymentStatus.FAILED,
-            failureReason:
-              paymentIntent.last_payment_error?.message || "Payment failed",
-          });
-        }
+        // Create transaction record
+        await this.createTransaction({
+          paymentId: payment.id,
+          amount: payment.amount,
+          type: TransactionType.CHARGE,
+          stripeTransactionId: paymentIntentId,
+          status: "succeeded",
+          description: `Payment confirmed for ${payment.type}`,
+          stripeResponse: {
+            id: paymentIntentId,
+            amount: payment.amount * 100, // Convert to cents for mock
+            status: "succeeded",
+            mock: true,
+          },
+        });
 
-        throw new BadRequestException("Payment confirmation failed");
+        const updatedPayment = await this.findById(payment.id);
+        updatedPayments.push(updatedPayment);
       }
+
+      // Update booking status to confirmed if booking payment is successful
+      const bookingPayment = payments.find(
+        (p) => p.type === PaymentType.BOOKING_PAYMENT
+      );
+      if (bookingPayment) {
+        await this.bookingRepository.update(bookingPayment.bookingId, {
+          status: BookingStatus.Confirmed,
+        });
+
+        console.log(`✅ BOOKING CONFIRMED:
+          📋 Booking ID: ${bookingPayment.bookingId}
+          💰 Amount Paid: $${bookingPayment.amount}
+          🎉 Status: Confirmed
+        `);
+      }
+
+      return updatedPayments;
     } catch (error) {
       throw new InternalServerErrorException(
         `Payment confirmation failed: ${error.message}`
       );
     }
   }
-
   async refundPayment(dto: RefundPaymentDto): Promise<Payment> {
     const payment = await this.findById(dto.paymentId);
 
     if (!payment) {
       throw new NotFoundException("Payment not found");
-    }
-
-    if (payment.status !== PaymentStatus.COMPLETED) {
-      throw new BadRequestException("Can only refund completed payments");
+    }    if (payment.status !== PaymentStatus.COMPLETED && payment.status !== PaymentStatus.PARTIALLY_REFUNDED) {
+      throw new BadRequestException("Can only refund completed or partially refunded payments");
     }
 
     const refundAmount = dto.amount || payment.amount - payment.refundedAmount;
@@ -230,37 +229,49 @@ export class PaymentService {
     }
 
     try {
-      // Process refund with Stripe
-      const refund = await this.stripe.refunds.create({
-        charge: payment.stripeChargeId,
-        amount: Math.round(refundAmount * 100), // Convert to cents
-        reason: "requested_by_customer",
-        metadata: {
-          paymentId: payment.id.toString(),
-          bookingId: payment.bookingId.toString(),
-          refundReason: dto.reason || "Customer requested refund",
-        },
-      });
+      // Mock refund processing
+      const mockRefundId = this.generateMockRefundId();
 
-      // Update payment with refund information
+      console.log(`🎭 MOCK REFUND PROCESSING:
+        💳 Payment ID: ${payment.id}
+        💰 Refund Amount: $${refundAmount}
+        📝 Reason: ${dto.reason || "Customer requested refund"}
+        🆔 Mock Refund ID: ${mockRefundId}
+        ✅ Status: SUCCEEDED
+      `);      // Update payment with refund information
       const newRefundedAmount = payment.refundedAmount + refundAmount;
       const newStatus =
         newRefundedAmount >= payment.amount
           ? PaymentStatus.REFUNDED
           : PaymentStatus.PARTIALLY_REFUNDED;
 
+      console.log(`🔍 REFUND CALCULATION DEBUG:
+        💰 Original refunded amount: ${payment.refundedAmount}
+        💰 Refund amount being added: ${refundAmount}
+        💰 New refunded amount calculated: ${newRefundedAmount}
+        📊 Payment amount: ${payment.amount}
+        🎯 New status: ${newStatus}
+      `);
+
       await this.updatePayment(payment.id, {
         refundedAmount: newRefundedAmount,
         status: newStatus,
-      }); // Create refund transaction record
+      });
+
+      // Create refund transaction record
       await this.createTransaction({
         paymentId: payment.id,
         amount: -refundAmount, // Negative amount for refund
         type: TransactionType.REFUND,
-        stripeTransactionId: refund.id,
-        status: refund.status || "unknown",
+        stripeTransactionId: mockRefundId,
+        status: "succeeded",
         description: dto.reason || `Refund for ${payment.type}`,
-        stripeResponse: refund,
+        stripeResponse: {
+          id: mockRefundId,
+          amount: refundAmount * 100, // Convert to cents for mock
+          status: "succeeded",
+          mock: true,
+        },
       });
 
       return await this.findById(payment.id);
@@ -328,9 +339,14 @@ export class PaymentService {
     });
 
     return await this.paymentRepository.save(payment);
-  }
-  async updatePayment(id: number, dto: UpdatePaymentDto): Promise<void> {
+  }  async updatePayment(id: number, dto: UpdatePaymentDto): Promise<void> {
     const updateData: any = { ...dto };
+
+    console.log(`🔍 UPDATE PAYMENT DEBUG:
+      📊 Payment ID: ${id}
+      💰 DTO received: ${JSON.stringify(dto, null, 2)}
+      📝 Update data before processing: ${JSON.stringify(updateData, null, 2)}
+    `);
 
     if (dto.status === PaymentStatus.COMPLETED && !dto.processedAt) {
       updateData.processedAt = new Date();
@@ -339,6 +355,10 @@ export class PaymentService {
     if (dto.refundedAmount !== undefined && !dto.refundedAt) {
       updateData.refundedAt = new Date();
     }
+
+    console.log(`🔍 UPDATE PAYMENT FINAL:
+      📝 Final update data: ${JSON.stringify(updateData, null, 2)}
+    `);
 
     await this.paymentRepository.update(id, updateData);
   }
@@ -387,91 +407,33 @@ export class PaymentService {
       order: { createdAt: "DESC" },
     });
   }
-
-  private calculateDays(startDate: Date, endDate: Date): number {
-    const timeDifference = endDate.getTime() - startDate.getTime();
+  private calculateDays(
+    startDate: Date | string,
+    endDate: Date | string
+  ): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const timeDifference = end.getTime() - start.getTime();
     return Math.ceil(timeDifference / (1000 * 3600 * 24));
-  }
-  // Handle Stripe webhooks
-  async handleStripeWebhook(signature: string, payload: Buffer): Promise<void> {
-    const webhookSecret = this.configService.get<string>(
-      "STRIPE_WEBHOOK_SECRET"
-    );
+  } // Mock webhook handling for development/testing
+  async handleMockWebhook(eventType: string, data: any): Promise<void> {
+    console.log(`🎭 MOCK WEBHOOK RECEIVED:
+      📨 Event Type: ${eventType}
+      📊 Data: ${JSON.stringify(data, null, 2)}
+    `);
 
-    if (!webhookSecret) {
-      throw new BadRequestException("Webhook secret not configured");
-    }
-
-    try {
-      const event = this.stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        webhookSecret
-      );
-
-      switch (event.type) {
-        case "payment_intent.succeeded":
-          await this.handlePaymentIntentSucceeded(
-            event.data.object as Stripe.PaymentIntent
-          );
-          break;
-        case "payment_intent.payment_failed":
-          await this.handlePaymentIntentFailed(
-            event.data.object as Stripe.PaymentIntent
-          );
-          break;
-        case "charge.dispute.created":
-          await this.handleChargeDispute(event.data.object as Stripe.Dispute);
-          break;
-        default:
-          console.log(`Unhandled event type ${event.type}`);
-      }
-    } catch (error) {
-      throw new BadRequestException(
-        `Webhook signature verification failed: ${error.message}`
-      );
-    }
-  }
-
-  private async handlePaymentIntentSucceeded(
-    paymentIntent: Stripe.PaymentIntent
-  ): Promise<void> {
-    // This is handled in confirmPayment method
-    console.log(`Payment intent ${paymentIntent.id} succeeded`);
-  }
-
-  private async handlePaymentIntentFailed(
-    paymentIntent: Stripe.PaymentIntent
-  ): Promise<void> {
-    const payments = await this.paymentRepository.find({
-      where: { stripePaymentIntentId: paymentIntent.id },
-    });
-
-    for (const payment of payments) {
-      await this.updatePayment(payment.id, {
-        status: PaymentStatus.FAILED,
-        failureReason:
-          paymentIntent.last_payment_error?.message || "Payment failed",
-      });
-    }
-  }
-
-  private async handleChargeDispute(dispute: Stripe.Dispute): Promise<void> {
-    const chargeId = dispute.charge as string;
-    const payment = await this.paymentRepository.findOne({
-      where: { stripeChargeId: chargeId },
-    });
-
-    if (payment) {
-      await this.createTransaction({
-        paymentId: payment.id,
-        amount: -dispute.amount / 100, // Convert from cents and make negative
-        type: TransactionType.DISPUTE,
-        stripeTransactionId: dispute.id,
-        status: dispute.status,
-        description: `Dispute created: ${dispute.reason}`,
-        stripeResponse: dispute,
-      });
+    switch (eventType) {
+      case "payment_intent.succeeded":
+        console.log(`✅ Mock payment intent ${data.id} succeeded`);
+        break;
+      case "payment_intent.payment_failed":
+        console.log(`❌ Mock payment intent ${data.id} failed`);
+        break;
+      case "charge.dispute.created":
+        console.log(`⚠️ Mock dispute created for charge ${data.charge}`);
+        break;
+      default:
+        console.log(`📝 Unhandled mock event type: ${eventType}`);
     }
   }
 }

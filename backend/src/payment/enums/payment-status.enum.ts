@@ -1,11 +1,11 @@
 export enum PaymentStatus {
-  PENDING = "pending",
-  PROCESSING = "processing",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  REFUNDED = "refunded",
-  PARTIALLY_REFUNDED = "partially_refunded",
-  CANCELLED = "cancelled",
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING", 
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+  PARTIALLY_REFUNDED = "PARTIALLY_REFUNDED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum PaymentType {
