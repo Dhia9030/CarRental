@@ -1,5 +1,6 @@
 export enum BookingEventType {
     BOOKING_CREATED = 'booking.created',
+    BOOKING_UPDATED = 'booking.updated'
   }
 
 

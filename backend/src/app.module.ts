@@ -40,7 +40,7 @@ import { ChatModule } from "./chat/chat.module";
         database: configService.get("DB_DATABASE"),
         autoLoadEntities: true,
         driver: require("mysql2"),
-        synchronize: false,
+        synchronize: true,
         migrationsRun: true,
         entities: [__dirname + "/**/*.entity{.ts,.js}"],
       }),
