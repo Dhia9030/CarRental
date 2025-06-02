@@ -45,11 +45,11 @@ export class Booking extends TimestampEntity {
   @JoinColumn({ name: "carId" })
   car: Car;
 
-  @Field()
+  @Field(() => Date)
   @Column({ type: "date" })
   startDate: Date;
 
-  @Field()
+  @Field(() => Date)
   @Column({ type: "date" })
   endDate: Date;
 

@@ -64,7 +64,6 @@ export class Complaint extends TimestampEntity {
   @ManyToOne(() => Booking, (booking) => booking.complaints)
   booking: Booking;
 
-  // ✅ Business logic check
   @BeforeInsert()
   @BeforeUpdate()
   validateParties() {

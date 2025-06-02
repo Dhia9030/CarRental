@@ -16,12 +16,30 @@ export class ComplaintsService {
   }
 
   async findAll() {
-    return await this.complaintRepository.find();
+    return await this.complaintRepository.find({
+      relations: [
+        "complainantUser",
+        "complainantAgency",
+        "againstUser",
+        "againstAgency",
+        "booking",
+      ],
+    });
   }
 
   async findOne(id: number) {
-    return await this.complaintRepository.findOneBy({ id });
+    return await this.complaintRepository.findOne({
+      where: { id },
+      relations: [
+        "complainantUser",
+        "complainantAgency",
+        "againstUser",
+        "againstAgency",
+        "booking",
+      ],
+    });
   }
+
   async update(id: number, updateComplaintInput: UpdateComplaintInput) {
     await this.complaintRepository.update(id, {
       ...updateComplaintInput,
