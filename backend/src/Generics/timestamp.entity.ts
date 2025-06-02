@@ -1,16 +1,19 @@
-import { CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
+import { ObjectType, Field } from "@nestjs/graphql";
 
+@ObjectType({ isAbstract: true })
 export class TimestampEntity {
-    @CreateDateColumn(
-        {
-            update: false
-        }
-    )
-    createdAt: Date;
+  @Field(() => Date)
+  @CreateDateColumn({
+    update: false,
+  })
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @Field(() => Date)
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @DeleteDateColumn()
-    deletedAt: Date;
+  @Field(() => Date, { nullable: true })
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date | null;
 }
