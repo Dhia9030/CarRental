@@ -1,22 +1,22 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { AgencyModule } from './agency/agency.module';
-import { CarModule } from './car/car.module';
-import { ReviewModule } from './review/review.module';
-import { BookingModule } from './booking/booking.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { EventsModule } from './events/events.module';
-import { AuthModule } from './auth/auth.module';
-import { ChatModule } from './chat/chat.module';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { GraphQLModule } from '@nestjs/graphql';
+import { Module  } from "@nestjs/common";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { UserModule } from "./user/user.module";
+import { AgencyModule } from "./agency/agency.module";
+import { CarModule } from "./car/car.module";
+import { ReviewModule } from "./review/review.module";
+import { BookingModule } from "./booking/booking.module";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { EventsModule } from "./events/events.module";
+import { AuthModule } from "./auth/auth.module";
 import { ComplaintsModule } from "./complaints/complaints.module";
+import { GraphQLModule } from "@nestjs/graphql";
+import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { join } from "path";
 import { PaymentModule } from "./payment/payment.module";
 import { HealthModule } from "./health/health.module";
+import { ChatModule } from "./chat/chat.module";
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -46,18 +46,19 @@ import { HealthModule } from "./health/health.module";
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule, AuthModule, ChatModule,ComplaintsModule,PaymentModule,HealthModule,
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver:ApolloDriver,
-      autoSchemaFile: true,
-      debug : true,
-      playground : true,
-      introspection: true, 
-      context: ({ req }) => ({ req }),
-    }),
-
+    UserModule,
+    AgencyModule,
+    CarModule,
+    ReviewModule,
+    BookingModule,
+    EventsModule,
+    AuthModule,
+    ComplaintsModule,
+    PaymentModule,
+    HealthModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
