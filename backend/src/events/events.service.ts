@@ -16,17 +16,8 @@ export class EventsService {
     private readonly bookingEventRepository: Repository<BookingEventEntity>,
   ) {}
 
-  onModuleInit() {
-    // Register listener manually
-    this.eventEmitter.on(BookingEventType.BOOKING_CREATED, this.handleBookingCreated.bind(this));
-  }
 
-  @OnEvent(BookingEventType.BOOKING_CREATED)
-  handleBookingCreated(event: BookingEvent) {
-    console.log("handling event")
-  }
 
-  // Save booking event to database
   private async saveBookingEvent(event: BookingEvent): Promise<BookingEventEntity> {
     const bookingEvent = new BookingEventEntity();
     bookingEvent.type = event.type;
@@ -37,7 +28,6 @@ export class EventsService {
     return this.bookingEventRepository.save(bookingEvent);
   }
 
-  // Subscribe to booking created events - for SSE
   subscribeToBookingCreated(): Observable<MessageEvent> {
     return fromEvent(this.eventEmitter, BookingEventType.BOOKING_CREATED).pipe(
       map(data => ({ 
@@ -47,12 +37,8 @@ export class EventsService {
   }
 
   subscribeToAgencyBookings(agencyId: number): Observable<MessageEvent> {
-    console.log("Agency ID: ", agencyId);
     return fromEvent(this.eventEmitter, BookingEventType.BOOKING_CREATED).pipe(
       filter((event: BookingEvent) => {
-        console.log("Event data: ", event.data);
-        console.log("Actual Agency ID: ", event.data.car.agencyId);
-        // Assuming the car in the booking has an agencyId property
         return event.data.car && event.data.car.agency && event.data.car.agencyId === agencyId;
       }),
       map(data => ({ 

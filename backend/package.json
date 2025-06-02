@@ -33,11 +33,8 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.2",
     "@nestjs/typeorm": "^11.0.0",
-<<<<<<< HEAD
     "@types/stripe": "^8.0.417",
-=======
     "@nestjs/websockets": "^11.1.2",
->>>>>>> 761bd78856489207a2453123cca6ca3be9f33806
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -47,11 +44,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-<<<<<<< HEAD
     "stripe": "^18.2.0",
-=======
     "socket.io": "^4.8.1",
->>>>>>> 761bd78856489207a2453123cca6ca3be9f33806
     "typeorm": "^0.3.24"
   },
   "devDependencies": {

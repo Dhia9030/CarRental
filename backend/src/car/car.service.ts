@@ -3,6 +3,8 @@ import { CreateCarDto } from "./dtos/create-car.dto";
 import { UpdateCarDto } from "./dtos/update-car.dto";
 import { Car } from "./entities/car.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { urlToHttpOptions } from "url";
+import { ForbiddenException } from "@nestjs/common";
 
 
 export class CarService{
@@ -23,11 +25,32 @@ findByAgency(agencyId: number) {
   return this.carRepository.find({ where: { agency: { id: agencyId } } });
 }
 
-update(id: number, updateCarDto: UpdateCarDto) {
+async update(id: number, updateCarDto: UpdateCarDto, agencyId: number) {
+
+  const car = await this.carRepository.findOne({ 
+    where: { 
+      id,
+      agency: { id: agencyId } 
+    },
+    relations: ['agency']
+  });
+  if (!car) {
+    throw new ForbiddenException('Car not found');
+  }
   return this.carRepository.update(id, updateCarDto);
 }
 
-remove(id: number) {
+async remove(id: number, agencyId: number) {
+  const car = await this.carRepository.findOne({ 
+    where: { 
+      id,
+      agency: { id: agencyId } 
+    },
+    relations: ['agency']
+  });
+  if (!car) {
+    throw new ForbiddenException('Car not found');
+  }
   return this.carRepository.delete(id);
 }
 }
