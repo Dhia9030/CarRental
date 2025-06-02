@@ -16,11 +16,11 @@ import { RolesGuard } from 'src/auth/guards/roles/roles.guard';
 export class BookingController {
     constructor(private readonly bookingService: BookingService) {}
 
+@Roles(Role.USER)
+@UseGuards(RolesGuard)
     @Post('add')
     async create(@Body() createBookingDto: CreateBookingDto, @User() user) {
-        if (!user) {
-            return new  UnauthorizedException("You must be logged in as a user to create a booking");
-        }
+
         return this.bookingService.create(createBookingDto, user.userId);
     }
 
@@ -34,15 +34,23 @@ export class BookingController {
         return this.bookingService.findByCar(+carId);
     }
 
+    @Roles(Role.AGENCY)
+@UseGuards(RolesGuard)
+
     @Get('user/:userId')
-    async findByUser(@Param('userId') userId: number) {
-        return this.bookingService.findByUser(+userId);
+    async findByUser(@Param('userId') userId: number , @Agency() agency) {
+        return this.bookingService.findByUser(+userId , agency.agencyId);
     }
 
+    @Roles(Role.AGENCY)
+    @UseGuards(RolesGuard)
+
     @Get('status/:status')
-    async findByStatus(@Param('status') status: BookingStatus) {
-        return this.bookingService.findByStatus(status);
+    async findByStatus(@Param('status') status: BookingStatus , @Agency() agency) {
+        return await this.bookingService.findByStatus(status , agency.agencyId);
     }
+    @Roles(Role.ADMIN)
+    @UseGuards(RolesGuard)
 
     @Get('filter/date-range')
     async findByDateRange(
@@ -66,6 +74,8 @@ export class BookingController {
         }
         return this.bookingService.findByAgencyAndDateRange(startDate, endDate , agency.agencyId);
     }
+    @Roles(Role.USER)
+    @UseGuards(RolesGuard)
     @Get('user/filter/date-range')
     async findByDateRangeUser(
         @Query('startDate') startDate: string,
@@ -73,32 +83,27 @@ export class BookingController {
         @User() user,
        
     ) {
-        if(!user){
-            return { message: 'You must be logged in as a user to view these bookings', bookings: [] };
-        }
+        
         return this.bookingService.findByUserAndDateRange(startDate, endDate , user.userId);
     }
 
+    
+    @Roles(Role.ADMIN)
+    @UseGuards(RolesGuard)
     @Get()
     async findAll() {
         return this.bookingService.findAll();
     }
-
+    @Roles(Role.AGENCY)
+    @UseGuards(RolesGuard)
     @Get('agency/bookings')
     async findAgencyBookings(@Agency() agency) {
-        if (!agency) {
-            return { message: 'You must be logged in as an agency to view these bookings', bookings: [] };
-        }
+        
         return this.bookingService.findByAgency(agency.agencyId);
     }
 
-    @Put(':id')
-    async update(
-        @Param('id') id: number,
-        @Body() updateBookingDto: UpdateBookingDto,
-    ) {
-        return this.bookingService.update(+id, updateBookingDto);
-    }
+    @Roles(Role.AGENCY)
+    @UseGuards(RolesGuard)
 
     @Patch(':id')
     async updateStatus(
@@ -106,15 +111,14 @@ export class BookingController {
         @Body() updateBookingDto : UpdateBookingDto,
         @Agency() agency,
     ) {
-        if (!agency) {
-            return { message: 'You must be logged in as an agency to update these bookings', bookings: [] };
-        }
+        
         return this.bookingService.updateStatus(+id, updateBookingDto.status?? BookingStatus.Pending, agency.agencyId);
     }
 
-
+    @Roles(Role.AGENCY)
+    @UseGuards(RolesGuard)
     @Delete(':id')
-    async remove(@Param('id') id: number) {
-        return this.bookingService.remove(+id);
+    async remove(@Param('id') id: number , @Agency() agency) {
+        return this.bookingService.remove(+id , agency.agencyId);
     }
 }

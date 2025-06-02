@@ -7,13 +7,16 @@ import { Booking } from "./entities/booking.entity";
 import { Between } from "typeorm";
 import { BookingStatus } from "./entities/booking.entity";
 import { EventsService } from "../events/events.service";
+import { Car } from "../car/entities/car.entity";
 
 @Injectable()
 export class BookingService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
-    private readonly eventsService: EventsService
+    private readonly eventsService: EventsService,
+    @InjectRepository(Car)
+    private readonly carRepository: Repository<Car>
   ) {}
 
   async create(
@@ -31,12 +34,29 @@ export class BookingService {
         "Car is not available for the requested dates"
       );
     }
+
+    const car = await this.carRepository.findOne( {
+      where: { id: createBookingDto.carId }
+    });
+
+    if (!car) {
+      throw new ForbiddenException("Car not found");
+    }
+
+    // Calculate booking duration in days
+    const startDate = new Date(createBookingDto.startDate);
+    const endDate = new Date(createBookingDto.endDate);
+    const durationInMs = endDate.getTime() - startDate.getTime();
+    const durationInDays = Math.ceil(durationInMs / (1000 * 60 * 60 * 24));
+    const cost = durationInDays * car.pricePerDay;
+
     const booking = this.bookingRepository.create({
       ...createBookingDto,
       userId: userId,
       startDate: new Date(createBookingDto.startDate),
       endDate: new Date(createBookingDto.endDate),
       status: BookingStatus.Pending,
+      cost: cost,
     });
     //console.log(createBookingDto.startDate)
     const savedBooking = await this.bookingRepository.save(booking);
@@ -61,12 +81,12 @@ export class BookingService {
     return this.bookingRepository.find({ where: { car: { id: carId } } });
   }
 
-  async findByUser(userId: number): Promise<Booking[]> {
-    return this.bookingRepository.find({ where: { user: { id: userId } } });
+  async findByUser(userId: number , agencyId?: number): Promise<Booking[]> {
+    return this.bookingRepository.find({ where: { user: { id: userId }, car: { agency: { id: agencyId } } }, relations: ["car", "car.agency", "user"] });
   }
 
-  async findByStatus(status: BookingStatus): Promise<Booking[]> {
-    return this.bookingRepository.find({ where: { status } });
+  async findByStatus(status: BookingStatus , agencyId?: number): Promise<Booking[]> {
+    return await this.bookingRepository.find({ where: { status , car: { agency: { id: agencyId } } }, relations: ["car", "car.agency", "user"] });
   }
 
   async findByDateRange(
@@ -110,7 +130,14 @@ export class BookingService {
     await this.bookingRepository.update(id, { status });
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number , agencyId : number): Promise<void> {
+    const booking = await this.bookingRepository.findOne({
+      where: { id, car: { agency: { id: agencyId } } },
+      relations: ["car", "car.agency", "user"],
+    });
+    if (!booking) {
+      throw new ForbiddenException("Booking not found");
+    }
     await this.bookingRepository.delete(id);
   }
 
