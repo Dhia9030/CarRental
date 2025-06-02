@@ -10,12 +10,20 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { EventsModule } from "./events/events.module";
 import { AuthModule } from "./auth/auth.module";
+import { ComplaintsModule } from "./complaints/complaints.module";
+import { GraphQLModule } from "@nestjs/graphql";
+import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
+import { join } from "path";
 import { PaymentModule } from "./payment/payment.module";
 import { HealthModule } from "./health/health.module";
-import { ChatModule } from "./chat/chat.module";
-
 @Module({
   imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), "src/schema.gql"),
+      playground: true, // Enables browser UI
+      introspection: true, // Required for playground in production
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ".env",
@@ -44,11 +52,11 @@ import { ChatModule } from "./chat/chat.module";
     BookingModule,
     EventsModule,
     AuthModule,
+    ComplaintsModule,
     PaymentModule,
     HealthModule,
-    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

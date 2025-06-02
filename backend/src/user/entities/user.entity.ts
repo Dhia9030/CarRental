@@ -1,47 +1,68 @@
-import { Booking } from 'src/booking/entities/booking.entity';
-import { Review } from 'src/review/entities/review.entity';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
-import { UserRole } from '../enums/role.enum';
-import { TimestampEntity } from 'src/Generics/timestamp.entity';
-import { Exclude } from 'class-transformer';
-
-
+import { Booking } from "src/booking/entities/booking.entity";
+import { Review } from "src/review/entities/review.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+  UpdateDateColumn,
+} from "typeorm";
+import { UserRole } from "../enums/role.enum";
+import { TimestampEntity } from "src/Generics/timestamp.entity";
+import { Exclude } from "class-transformer";
+import { Complaint } from "src/complaints/entities/complaint.entity";
+import { ObjectType, Field, ID } from "@nestjs/graphql";
+@ObjectType()
 @Entity()
-@Unique(['email'])
+@Unique(["email"])
 export class User extends TimestampEntity {
+  @Field(() => ID)
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn()
-    id: number;
+  @Field()
+  @Column({ type: "varchar", length: 100, nullable: false })
+  email: string;
 
-    @Column({ type: 'varchar', length: 100, nullable: false })
-    email: string;
+  @Column({
+    type: "varchar",
+    length: 255, // enough for most hash formats
+    nullable: false,
+    select: false, // do not select password by default
+  })
+  password: string;
 
-    @Column({
-        type: 'varchar',
-        length: 255,  // enough for most hash formats 
-        nullable: false,
-        select: false  // do not select password by default
-    })
-    password: string;
+  @Field()
+  @Column({ type: "varchar", length: 100, nullable: false })
+  firstName: string;
 
-    @Column({ type: 'varchar', length: 100, nullable: false })
-    firstName: string;
+  @Field()
+  @Column({ type: "varchar", length: 100, nullable: false })
+  lastName: string;
 
+  @Field()
+  @Column({
+    type: "enum",
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
 
-    @Column({ type: 'varchar', length: 100, nullable: false })
-    lastName: string;
+  //@Field(() => [Review], { nullable: true })
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 
-    @Column({
-        type: 'enum',
-        enum: UserRole,
-        default: UserRole.USER,
-    })
-    role: UserRole;
+  @Field(() => [Booking], { nullable: true })
+  @OneToMany(() => Booking, (booking) => booking.user)
+  bookings: Booking[];
 
-    @OneToMany(() => Review, review => review.user)
-    reviews: Review[];
+  @Field(() => [Complaint], { nullable: true })
+  @OneToMany(() => Complaint, (complaint) => complaint.complainantUser)
+  complaints: Complaint[];
 
-    @OneToMany(() => Booking, booking => booking.user)
-    bookings: Booking[];
-
+  @Field(() => [Complaint], { nullable: true })
+  @OneToMany(() => Complaint, (complaint) => complaint.againstUser)
+  complaintsAgainst: Complaint[];
 }

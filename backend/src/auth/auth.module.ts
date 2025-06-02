@@ -14,7 +14,7 @@ import { AgencyModule } from '../agency/agency.module';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your_jwt_secret',
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   providers: [AuthService, JwtStrategy],
