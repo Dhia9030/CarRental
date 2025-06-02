@@ -31,8 +31,45 @@ type Agency {
   id: ID!
   email: String!
   username: String!
+  cars: [Car!]!
   complaintsFiled: [Complaint!]
   complaintsAgainst: [Complaint!]
+}
+
+type Review {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  id: Int!
+  user: User!
+  car: Car!
+  value: Int!
+  description: String!
+}
+
+type Car {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  id: Int!
+  model: String!
+  company: String!
+  year: Int!
+  pricePerDay: Float!
+  fuelType: FuelType!
+  description: String!
+  location: String!
+  seat: Int!
+  agencyId: Int!
+  agency: Agency!
+  reviews: [Review!]!
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  ELECTRIC
+  HYBRID
 }
 
 type Booking {
@@ -62,6 +99,7 @@ type User {
   firstName: String!
   lastName: String!
   role: String!
+  reviews: [Review!]!
   bookings: [Booking!]
   complaints: [Complaint!]
   complaintsAgainst: [Complaint!]
@@ -72,6 +110,7 @@ type Query {
   user(id: Float!): User
   agencies: [Agency!]!
   agency(id: Float!): Agency
+  findByAgency(agencyId: Int!): [Car!]!
   complaints: [Complaint!]!
   complaint(id: Int!): Complaint!
 }
