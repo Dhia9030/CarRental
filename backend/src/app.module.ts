@@ -11,6 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventsModule } from './events/events.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { GraphQLModule } from '@nestjs/graphql';
 
 @Module({
   imports: [
@@ -36,7 +38,16 @@ import { ChatModule } from './chat/chat.module';
       }),
       inject: [ConfigService],
     }),
-    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule, AuthModule, ChatModule],
+    UserModule, AgencyModule, CarModule, ReviewModule, BookingModule, EventsModule, AuthModule, ChatModule,
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver:ApolloDriver,
+      autoSchemaFile: true,
+      debug : true,
+      playground : true,
+      introspection: true, 
+      context: ({ req }) => ({ req }),
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

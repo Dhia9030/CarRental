@@ -7,7 +7,6 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 
 @Controller('cars')
-@UseGuards(JwtAuthGuard)
 export class CarController {
   constructor(
     private readonly carService: CarService,

@@ -6,7 +6,6 @@ import { UseGuards } from '@nestjs/common';
 import { Agency } from 'src/auth/decorators/auth.decorators';
 
 @Controller('events')
-@UseGuards(JwtAuthGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 

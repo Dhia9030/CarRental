@@ -4,15 +4,18 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Un
 import { UserRole } from '../enums/role.enum';
 import { TimestampEntity } from 'src/Generics/timestamp.entity';
 import { Exclude } from 'class-transformer';
+import {Field, Int, ObjectType} from '@nestjs/graphql'
 
-
+@ObjectType()
 @Entity()
 @Unique(['email'])
 export class User extends TimestampEntity {
 
+    @Field(()=>Int)
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Field()
     @Column({ type: 'varchar', length: 100, nullable: false })
     email: string;
 
@@ -24,10 +27,11 @@ export class User extends TimestampEntity {
     })
     password: string;
 
+    @Field()
     @Column({ type: 'varchar', length: 100, nullable: false })
     firstName: string;
 
-
+    @Field()
     @Column({ type: 'varchar', length: 100, nullable: false })
     lastName: string;
 
@@ -38,6 +42,7 @@ export class User extends TimestampEntity {
     })
     role: UserRole;
 
+    @Field(()=>[Review])
     @OneToMany(() => Review, review => review.user)
     reviews: Review[];
 
