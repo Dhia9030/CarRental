@@ -205,11 +205,11 @@ export class BookingService {
     const start = new Date(startDate);
     const end = new Date(endDate);
     return this.bookingRepository.find({
-      where: [
-        { startDate: Between(start, end) },
-        { endDate: Between(start, end) },
-        { car: { agency: { id: agencyId } } },
-      ],
+      where: {
+         startDate: Between(start, end) ,
+         endDate: Between(start, end) ,
+        car: { agency: { id: agencyId } } ,
+      },
       relations: ["car", "car.agency", "user"],
     });
   }
@@ -220,12 +220,13 @@ export class BookingService {
   ): Promise<Booking[]> {
     const start = new Date(startDate);
     const end = new Date(endDate);
+    console.log(userId);
     return this.bookingRepository.find({
-      where: [
-        { startDate: Between(start, end) },
-        { endDate: Between(start, end) },
-        { user: { id: userId } },
-      ],
+      where: {
+         startDate: Between(start, end) ,
+         endDate: Between(start, end) ,
+        user: { id: userId } ,
+      },
       relations: ["car", "car.agency", "user"],
     });
   }
