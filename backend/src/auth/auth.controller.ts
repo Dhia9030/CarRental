@@ -4,7 +4,7 @@ import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dtos/create-user.dto';
 import { AgencyService } from 'src/agency/agency.service';
 import { CreateAgencyDto } from 'src/agency/dtos/create-agency.dto';
-import { User , Agency} from 'src/auth/decorators/auth.decorators';
+import { User, Agency } from 'src/auth/decorators/auth.decorators';
 import { Role } from './enums/role.enum';
 
 
@@ -22,13 +22,13 @@ export class AuthController {
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        return this.authService.login(user , Role.AGENCY);
+        return this.authService.login(user, Role.AGENCY);
     }
 
     @Post('AgencyRegister')
     async agencyRegister(@Body() createAgencyDto: CreateAgencyDto) {
         const user = await this.agencyService.createUser(createAgencyDto);
-        return this.authService.login(user , Role.AGENCY);
+        return this.authService.login(user, Role.AGENCY);
     }
 
     @Post('UserLogin')
@@ -37,12 +37,14 @@ export class AuthController {
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
-        return this.authService.login(user , Role.USER);
+        return this.authService.login(user, Role.USER);
     }
 
     @Post('UserRegister')
     async userRegister(@Body() createUserDto: CreateUserDto) {
         const user = await this.usersService.createUser(createUserDto);
-        return this.authService.login(user , Role.USER);
+        return this.authService.login(user, Role.USER);
     }
+
+
 }
