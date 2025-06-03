@@ -8,96 +8,92 @@ import { CreateMessageDto } from './dtos/create-message.dto';
 import { User } from '../user/entities/user.entity';
 import { UserRole } from 'src/user/enums/role.enum';
 import { UserService } from '../user/user.service';
+import {User as U} from '../auth/decorators/auth.decorators'
 
-@WebSocketGateway(3005, {
-    cors: {
-        origin: ['*'],
-        methods: ['GET', 'POST'],
-        credentials: true,
-    },
-    transports: ['websocket'],
-})
-@UseGuards(WsJwtGuard) // Use our custom WebSocket guard
+
+@WebSocketGateway(3005,{ namespace: 'chat', cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-    @WebSocketServer()
-    server: Server;
+  @WebSocketServer() server: Server; // Socket.io server instance
 
-    constructor(
-        private readonly chatService: ChatService,
-        private readonly jwtService: JwtService,
-        private readonly userService: UserService
-    ) { }
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly jwtService: JwtService,
+    private readonly usersService: UserService,
+  ) {}
 
-    async handleConnection(client: Socket & { user: User }) {
-        console.log(`Client connected: ${client.id}`);
+  // Handle initial connection and enforce JWT authentication
+  async handleConnection(client: Socket) {
+    try {
+        console.log("ay haja");
+      const token = client.handshake.headers.authorization?.split(' ')[1] || '';
 
-        if (client.user.role === UserRole.ADMIN) {
-            client.join('admins');
-            console.log(`Admin ${client.user.id} connected`);
-        } else {
-            client.join(`user_${client.user.id}`);
-            console.log(`User ${client.user.id} connected`);
-        }
+      const payload = this.jwtService.verify(token);
+      const user = await this.usersService.findById(payload.userId);
+      // If user not found or role is not allowed (e.g., agency), disconnect
+      if (!user || !['admin','user'].includes(user.role)) {
+        throw new Error('Unauthorized');
+      }
+      // Attach user info to socket for later use
+      (client as any).user = user;
+    } catch (err) {
+      client.disconnect(true);
     }
+  }
 
-    handleDisconnect(client: Socket & { user: User }) {
-        console.log(`Client disconnected: ${client.id}`);
+  // Example event: user joins a conversation room
+//   @UseGuards(WsJwtGuard) // Custom guard to validate JWT on websocket events
+  @SubscribeMessage('joinConversation')
+  async handleJoinConversation(
+    @ConnectedSocket() client: Socket,
+    @U() user,
+    @MessageBody() payload: { conversationId: number },
+  ) {
+    const conv = await this.chatService.getConversation(payload.conversationId);
+    if (!conv) {
+      client.emit('error', 'Conversation not found');
+      return;
     }
-
-    @SubscribeMessage('sendMessage')
-    async handleMessage(
-        @ConnectedSocket() client: Socket & { user: User },
-        @MessageBody() createMessageDto: CreateMessageDto,
+    // Ensure only the assigned user or admin can join
+    if (
+      (user.role === 'user'  && conv.user.id !== user.userId) ||
+      (user.role === 'admin' && conv.admin.id !== user.userId)
     ) {
-        const sender = client.user;
-        let conversationId = createMessageDto.conversationId;
-
-        // If new conversation, find an admin
-        if (!conversationId) {
-            const admin = await this.chatService.findAvailableAdmin();
-            if (!admin) {
-                throw new Error('No available admin');
-            }
-
-            const conversation = await this.chatService.findOrCreateConversation(
-                sender.id,
-                admin.id
-            );
-            conversationId = conversation.id;
-
-            // Notify admin about new conversation
-            this.server.to(`admin_${admin.id}`).emit('newConversation', conversation);
-        }
-
-        const message = await this.chatService.createMessage(
-            { ...createMessageDto, conversationId },
-            sender
-        );
-
-        // Emit to conversation room
-        this.server.to(`conversation_${conversationId}`).emit('newMessage', message);
-
-        return { message, conversationId };
+      client.emit('error', 'Not authorized to join this conversation');
+      return;
     }
+    client.join(`conversation_${conv.id}`);
+    client.emit('joinedConversation', { conversationId: conv.id });
+  }
 
-    @SubscribeMessage('joinConversation')
-    async handleJoinConversation(
-        @ConnectedSocket() client: Socket & { user: User },
-        @MessageBody() conversationId: number,
-    ) {
-        const conversation = await this.chatService.getConversation(conversationId);
+  // Event: sending a new message
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('sendMessage')
+  async handleSendMessage(
+    @U() user: { userId: number, role: string },
+    @MessageBody() dto: { conversationId: number, content: string },
+  ) {
+    const msg = await this.chatService.sendMessage(dto.conversationId, user.userId, dto.content);
+    // Broadcast the new message to all clients in the room
+    this.server.to(`conversation_${dto.conversationId}`).emit('newMessage', msg);
+  }
 
-        // Verify user is part of conversation
-        if (client.user.id !== conversation.user.id &&
-            client.user.id !== conversation.admin.id) {
-            throw new Error('Unauthorized access to conversation');
-        }
+  // Event: marking messages as read
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('readMessages')
+  async handleReadMessages(
+    @U() user: { userId: number, role: string },
+    @MessageBody() dto: { conversationId: number, messageIds: number[] },
+  ) {
+    await this.chatService.markMessagesAsRead(dto.conversationId, user.userId, dto.messageIds);
+    // Notify other party that messages have been read
+    this.server.to(`conversation_${dto.conversationId}`).emit('messagesRead', {
+      conversationId: dto.conversationId,
+      messageIds: dto.messageIds,
+      readerId: user.userId,
+    });
+  }
 
-        client.join(`conversation_${conversationId}`);
-        await this.chatService.markMessagesAsRead(conversationId, client.user.id);
-
-        // Send conversation history
-        const messages = await this.chatService.getMessages(conversationId);
-        return messages;
-    }
+  async handleDisconnect(client: Socket) {
+    // Optionally handle cleanup or user offline status
+  }
 }

@@ -1,26 +1,25 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, Column } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Message } from './message.entity';
-
+// conversation.entity.ts
 @Entity()
 export class Conversation {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    user: User;
+  // The user who participates in this conversation
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    admin: User;
+  // The admin assigned to this conversation
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'adminId' })
+  admin: User;
 
-    @OneToMany(() => Message, message => message.conversation)
-    messages: Message[];
+  @OneToMany(() => Message, msg => msg.conversation, { cascade: true })
+  messages: Message[];
 
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @Column({ default: true })
-    isActive: boolean;
+  @CreateDateColumn()
+  createdAt: Date;
 }

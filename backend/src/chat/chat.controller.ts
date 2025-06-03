@@ -26,7 +26,7 @@ export class ChatController {
     ) {
         const conversation = await this.chatService.verifyConversationAccess(
             conversationId,
-            user.id
+            user.id,user.role
         );
         if (!conversation) {
             throw new Error('Access denied or conversation not found');

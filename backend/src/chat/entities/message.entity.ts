@@ -2,24 +2,28 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDa
 import { Conversation } from './conversation.entity';
 import { User } from '../../user/entities/user.entity';
 
+// message.entity.ts
 @Entity()
 export class Message {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    content: string;
+  // The conversation this message belongs to
+  @ManyToOne(() => Conversation, conv => conv.messages)
+  @JoinColumn({ name: 'conversationId' })
+  conversation: Conversation;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    sender: User;
+  // The user (or admin) who sent the message
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'senderId' })
+  sender: User;
 
-    @ManyToOne(() => Conversation, conversation => conversation.messages)
-    conversation: Conversation;
+  @Column('text')
+  content: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @Column({ default: false })
-    isRead: boolean;
+  @Column({ default: false })
+  read: boolean;  // whether the recipient has read this message
 }
