@@ -1,8 +1,15 @@
-// MOCK USER ENTITY TO AVOID DEPENDENCIES
+// MOCK ALL EXTERNAL DEPENDENCIES
+jest.mock('src/booking/entities/booking.entity', () => ({}));
+jest.mock('src/review/entities/review.entity', () => ({}));
+
 jest.mock('../user/entities/user.entity', () => {
     class MockUser {
         id: number;
         role: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        password: string;
     }
     return MockUser;
 });
@@ -29,9 +36,22 @@ describe('ChatGateway', () => {
                 {
                     provide: ChatService,
                     useValue: {
-                        findAvailableAdmin: jest.fn().mockResolvedValue({ id: 1, role: UserRole.ADMIN }),
-                        findOrCreateConversation: jest.fn().mockResolvedValue({ id: 1 }),
-                        createMessage: jest.fn().mockResolvedValue({ id: 1, content: 'Test' }),
+                        findAvailableAdmin: jest.fn().mockResolvedValue({
+                            id: 1,
+                            role: UserRole.ADMIN,
+                            firstName: 'Admin',
+                            lastName: 'User'
+                        }),
+                        findOrCreateConversation: jest.fn().mockResolvedValue({
+                            id: 1,
+                            user: { id: 1 },
+                            admin: { id: 2 }
+                        }),
+                        createMessage: jest.fn().mockResolvedValue({
+                            id: 1,
+                            content: 'Test',
+                            createdAt: new Date()
+                        }),
                         getConversation: jest.fn().mockResolvedValue({
                             id: 1,
                             user: { id: 1 },
@@ -44,13 +64,13 @@ describe('ChatGateway', () => {
                 {
                     provide: UserService,
                     useValue: {
-                        // Add any required user service methods here
+                        findOne: jest.fn(),
                     },
                 },
                 {
                     provide: JwtService,
                     useValue: {
-                        // Mock JWT methods if needed
+                        verify: jest.fn(),
                     },
                 },
             ],
@@ -59,11 +79,13 @@ describe('ChatGateway', () => {
         gateway = module.get<ChatGateway>(ChatGateway);
         chatService = module.get<ChatService>(ChatService);
 
-        // Mock WebSocket server
+        // Create a more complete server mock
         gateway.server = {
-            to: jest.fn().mockReturnThis(),
+            to: jest.fn().mockImplementation(() => ({
+                emit: jest.fn(),
+            })),
             emit: jest.fn(),
-        } as any;
+        } as unknown as Server;
         server = gateway.server;
     });
 
@@ -71,8 +93,13 @@ describe('ChatGateway', () => {
         it('should join admin room for admin users', () => {
             const client = {
                 join: jest.fn(),
-                user: { role: UserRole.ADMIN, id: 1 }
-            } as any;
+                user: {
+                    id: 1,
+                    role: UserRole.ADMIN,
+                    firstName: 'Admin',
+                    lastName: 'User'
+                }
+            } as unknown as Socket & { user: User };
 
             gateway.handleConnection(client);
             expect(client.join).toHaveBeenCalledWith('admins');
@@ -81,8 +108,13 @@ describe('ChatGateway', () => {
         it('should join user room for regular users', () => {
             const client = {
                 join: jest.fn(),
-                user: { role: UserRole.USER, id: 2 }
-            } as any;
+                user: {
+                    id: 2,
+                    role: UserRole.USER,
+                    firstName: 'Regular',
+                    lastName: 'User'
+                }
+            } as unknown as Socket & { user: User };
 
             gateway.handleConnection(client);
             expect(client.join).toHaveBeenCalledWith('user_2');
@@ -91,28 +123,81 @@ describe('ChatGateway', () => {
 
     describe('handleMessage', () => {
         it('should create new conversation when none exists', async () => {
-            const client = { user: { id: 1 } } as any;
+            const client = {
+                user: {
+                    id: 1,
+                    role: UserRole.USER
+                }
+            } as unknown as Socket & { user: User };
+
             const dto: CreateMessageDto = { content: 'Hello', conversationId: 3 };
 
             await gateway.handleMessage(client, dto);
 
             expect(chatService.findAvailableAdmin).toHaveBeenCalled();
             expect(chatService.findOrCreateConversation).toHaveBeenCalledWith(1, 1);
-            expect(server.emit).toHaveBeenCalledWith('newMessage', expect.anything());
+            expect(server.to).toHaveBeenCalledWith(`conversation_1`);
+        });
+
+        it('should use existing conversation when ID is provided', async () => {
+            const client = {
+                user: {
+                    id: 1,
+                    role: UserRole.USER
+                }
+            } as unknown as Socket & { user: User };
+
+            const dto: CreateMessageDto = {
+                content: 'Hello',
+                conversationId: 5
+            };
+
+            await gateway.handleMessage(client, dto);
+
+            expect(chatService.findAvailableAdmin).not.toHaveBeenCalled();
+            expect(chatService.createMessage).toHaveBeenCalledWith(
+                expect.objectContaining({ conversationId: 5 }),
+                client.user
+            );
         });
     });
 
-    describe('joinConversation', () => {
+    describe('handleJoinConversation', () => {
         it('should join conversation and mark messages read', async () => {
             const client = {
                 join: jest.fn(),
-                user: { id: 1 }
-            } as any;
+                user: {
+                    id: 1,
+                    role: UserRole.USER
+                }
+            } as unknown as Socket & { user: User };
 
             await gateway.handleJoinConversation(client, 1);
 
             expect(client.join).toHaveBeenCalledWith('conversation_1');
             expect(chatService.markMessagesAsRead).toHaveBeenCalledWith(1, 1);
+            expect(chatService.getMessages).toHaveBeenCalledWith(1);
+        });
+
+        it('should throw error for unauthorized access', async () => {
+            const client = {
+                join: jest.fn(),
+                user: {
+                    id: 99, // Not part of conversation
+                    role: UserRole.USER
+                }
+            } as unknown as Socket & { user: User };
+
+            // Simulate conversation with different users
+            jest.spyOn(chatService, 'getConversation').mockResolvedValueOnce({
+                id: 1,
+                user: { id: 1 },
+                admin: { id: 2 }
+            } as any);
+
+            await expect(gateway.handleJoinConversation(client, 1)).rejects.toThrow(
+                'Unauthorized access to conversation'
+            );
         });
     });
 });

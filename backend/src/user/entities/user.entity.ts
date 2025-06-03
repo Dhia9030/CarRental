@@ -59,7 +59,7 @@ export class User extends TimestampEntity {
 
   @Field(() => [Review])
   @OneToMany(() => Review, (review) => review.user)
-  reviews: Review[];
+  reviews: Promise<Review[]>;
 
   @Field(() => [Booking], { nullable: true })
   @OneToMany(() => Booking, (booking) => booking.user)
