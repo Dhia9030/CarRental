@@ -34,8 +34,23 @@ export class ComplaintsResolver {
       updateComplaintInput
     );
   }
+  @Mutation(() => Complaint)
+  updateComplaintStatus(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("status") status: "Ouverte" | "En cours" | "Résolue"
+  ): Promise<Complaint> {
+    return this.complaintsService.updateComplaintStatus(id, status);
+  }
 
   @Mutation(() => Complaint)
+  updateComplaintPriority(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("priority") priority: "Haute" | "Moyenne" | "Basse"
+  ): Promise<Complaint> {
+    //console.log(priority);
+    return this.complaintsService.updateComplaintPriority(id, priority);
+  }
+
   removeComplaint(@Args("id", { type: () => Int }) id: number) {
     return this.complaintsService.remove(id);
   }
