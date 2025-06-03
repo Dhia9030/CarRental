@@ -23,7 +23,7 @@ create(@Body() createCarDto: CreateCarDto , @Agency() agency) {
   return this.carService.create(createCarDto, agency.agencyId);
 }
 
-@Roles(Role.AGENCY)
+@Roles(Role.AGENCY, Role.USER)
 @UseGuards(RolesGuard)
 @Get('agency')
 findByAgency(@Agency() agency) {
