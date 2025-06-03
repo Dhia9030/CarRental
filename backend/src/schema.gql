@@ -118,7 +118,8 @@ type Query {
 type Mutation {
   createComplaint(createComplaintInput: CreateComplaintInput!): Complaint!
   updateComplaint(updateComplaintInput: UpdateComplaintInput!): Complaint!
-  removeComplaint(id: Int!): Complaint!
+  updateComplaintStatus(id: Int!, status: String!): Complaint!
+  updateComplaintPriority(id: Int!, priority: String!): Complaint!
 }
 
 input CreateComplaintInput {

@@ -26,31 +26,31 @@ import {
   MessageSquare,
   CheckCircle,
   AlertTriangle,
+  Building2,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 const mapComplaintResponse = (complaint: any) => {
   const isClient = complaint.complainantType === "Client";
-
   const complainant = isClient
-    ? complaint.complainantUser?.fullName
-    : complaint.complainantAgency?.name;
-
+    ? complaint.complainantUser?.firstName +
+      " " +
+      complaint.complainantUser?.lastName
+    : complaint.complainantAgency?.username;
   const against = complaint.againstAgency
-    ? complaint.againstAgency.name
-    : complaint.againstUser?.fullName;
-
+    ? complaint.againstAgency.username
+    : complaint.againstUser?.firstName + " " + complaint.againstUser?.lastName;
   return {
     id: complaint.id,
     title: complaint.title,
     complainant: complainant ?? "N/A",
     against: against ?? "N/A",
-    type: isClient ? "Client" : "Agence",
+    type: complaint.complainantType,
     status: complaint.status.toLowerCase(),
     priority: complaint.priority.toLowerCase(),
     createdDate: complaint.createdAt.slice(0, 10),
     category: complaint.category.toLowerCase(),
-    description: complaint.description,
   };
 };
 const GET_COMPLAINTS = gql`
@@ -77,7 +77,6 @@ const GET_COMPLAINTS = gql`
       priority
       createdAt
       category
-      description
     }
   }
 `;
@@ -92,13 +91,34 @@ const columns = [
     accessorKey: "title",
     header: "Titre",
   },
+  ,
   {
-    accessorKey: "user",
-    header: "Utilisateur",
+    accessorKey: "type",
+    header: "Type de plaignant",
+    cell: ({ row }: any) => {
+      const type = row.getValue("type");
+      return (
+        <Badge
+          variant={type === "Client" ? "default" : "secondary"}
+          className="flex items-center space-x-1"
+        >
+          {type === "Client" ? (
+            <Users className="h-3 w-3" />
+          ) : (
+            <Building2 className="h-3 w-3" />
+          )}
+          <span>{type === "Client" ? "Client" : "Agence"}</span>
+        </Badge>
+      );
+    },
   },
   {
-    accessorKey: "agency",
-    header: "Agence",
+    accessorKey: "complainant",
+    header: "Plaignant",
+  },
+  {
+    accessorKey: "against",
+    header: "Contre",
   },
   {
     accessorKey: "category",
@@ -125,16 +145,16 @@ const columns = [
       return (
         <Badge
           variant={
-            priority === "high"
+            priority === "haute"
               ? "destructive"
-              : priority === "medium"
+              : priority === "moyenne"
               ? "default"
               : "secondary"
           }
         >
-          {priority === "high" && "Haute"}
-          {priority === "medium" && "Moyenne"}
-          {priority === "low" && "Basse"}
+          {priority === "haute" && "Haute"}
+          {priority === "moyenne" && "Moyenne"}
+          {priority === "basse" && "Basse"}
         </Badge>
       );
     },
@@ -147,16 +167,16 @@ const columns = [
       return (
         <Badge
           variant={
-            status === "resolved"
+            status === "résolue"
               ? "default"
-              : status === "in_progress"
+              : status === "en cours"
               ? "secondary"
               : "destructive"
           }
         >
-          {status === "open" && "Ouverte"}
-          {status === "in_progress" && "En cours"}
-          {status === "resolved" && "Résolue"}
+          {status === "ouverte" && "Ouverte"}
+          {status === "en cours" && "en cours"}
+          {status === "résolue" && "Résolue"}
         </Badge>
       );
     },
@@ -205,10 +225,11 @@ export default function ComplaintsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const { loading, error, data } = useQuery(GET_COMPLAINTS);
-  console.log("Complaints data:", data);
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   const complaintsData = data.complaints.map(mapComplaintResponse);
+  console.log("Complaints data:", complaintsData);
+
   const filteredComplaints = complaintsData.filter((complaint: any) => {
     const matchesSearch =
       complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -250,7 +271,7 @@ export default function ComplaintsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {complaintsData.filter((c: any) => c.status === "open").length}
+              {complaintsData.filter((c: any) => c.status === "ouverte").length}
             </div>
           </CardContent>
         </Card>
@@ -261,7 +282,7 @@ export default function ComplaintsPage() {
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
               {
-                complaintsData.filter((c: any) => c.status === "in_progress")
+                complaintsData.filter((c: any) => c.status === "en cours")
                   .length
               }
             </div>
@@ -273,10 +294,7 @@ export default function ComplaintsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {
-                complaintsData.filter((c: any) => c.status === "resolved")
-                  .length
-              }
+              {complaintsData.filter((c: any) => c.status === "résolue").length}
             </div>
           </CardContent>
         </Card>

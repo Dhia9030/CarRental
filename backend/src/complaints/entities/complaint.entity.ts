@@ -12,7 +12,6 @@ import { Agency } from "src/agency/entities/agency.entity";
 import { TimestampEntity } from "src/Generics/timestamp.entity";
 import { ComplaintCategory } from "../enums/category.enum";
 import { Booking } from "src/booking/entities/booking.entity";
-
 @Entity()
 @ObjectType()
 export class Complaint extends TimestampEntity {
@@ -64,7 +63,6 @@ export class Complaint extends TimestampEntity {
   @ManyToOne(() => Booking, (booking) => booking.complaints)
   booking: Booking;
 
-  // ✅ Business logic check
   @BeforeInsert()
   @BeforeUpdate()
   validateParties() {
