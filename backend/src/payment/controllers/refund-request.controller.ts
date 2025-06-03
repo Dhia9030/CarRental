@@ -10,6 +10,7 @@ import {
 import { RefundRequestService } from "../services/refund-request.service";
 import { CreateRefundRequestDto } from "../dtos/create-refund-request.dto";
 import { ReviewRefundRequestDto } from "../dtos/review-refund-request.dto";
+import { RefundRequestStatus } from "../enums/refund-request.enum";
 import { JwtAuthGuard } from "../../auth/jwt-auth.guard";
 import { RolesGuard } from "../../auth/guards/roles/roles.guard";
 import { Roles } from "../../auth/decorators/roles.decorator";
@@ -29,7 +30,10 @@ export class RefundRequestController {
     @User() user: any,
     @Body() dto: CreateRefundRequestDto
   ) {
-    return await this.refundRequestService.createRefundRequest(user.userId, dto);
+    return await this.refundRequestService.createRefundRequest(
+      user.userId,
+      dto
+    );
   }
 
   @Get("my-requests")
@@ -44,9 +48,10 @@ export class RefundRequestController {
   @Roles(Role.AGENCY)
   @UseGuards(RolesGuard)
   async getAgencyRefundRequests(@Agency() agency: any) {
-    return await this.refundRequestService.getRefundRequestsByAgency(agency.agencyId);
+    return await this.refundRequestService.getRefundRequestsByAgency(
+      agency.agencyId
+    );
   }
-
   @Post(":id/approve")
   @Roles(Role.AGENCY)
   @UseGuards(RolesGuard)
@@ -56,12 +61,15 @@ export class RefundRequestController {
     @Body() dto: { agencyNotes?: string }
   ) {
     const reviewDto: ReviewRefundRequestDto = {
-      status: "APPROVED" as any,
+      status: RefundRequestStatus.APPROVED,
       agencyNotes: dto.agencyNotes,
     };
-    return await this.refundRequestService.reviewRefundRequest(id, agency.agencyId, reviewDto);
+    return await this.refundRequestService.reviewRefundRequest(
+      id,
+      agency.agencyId,
+      reviewDto
+    );
   }
-
   @Post(":id/reject")
   @Roles(Role.AGENCY)
   @UseGuards(RolesGuard)
@@ -71,11 +79,15 @@ export class RefundRequestController {
     @Body() dto: { rejectionReason: string; agencyNotes?: string }
   ) {
     const reviewDto: ReviewRefundRequestDto = {
-      status: "REJECTED" as any,
+      status: RefundRequestStatus.REJECTED,
       rejectionReason: dto.rejectionReason,
       agencyNotes: dto.agencyNotes,
     };
-    return await this.refundRequestService.reviewRefundRequest(id, agency.agencyId, reviewDto);
+    return await this.refundRequestService.reviewRefundRequest(
+      id,
+      agency.agencyId,
+      reviewDto
+    );
   }
 
   // Admin endpoints

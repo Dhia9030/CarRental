@@ -41,7 +41,9 @@ export class RefundRequestService {
     }
 
     if (payment.userId !== userId) {
-      throw new ForbiddenException("You can only request refunds for your own payments");
+      throw new ForbiddenException(
+        "You can only request refunds for your own payments"
+      );
     }
 
     // Validate booking exists and belongs to user
@@ -54,7 +56,9 @@ export class RefundRequestService {
     }
 
     if (booking.userId !== userId) {
-      throw new ForbiddenException("You can only request refunds for your own bookings");
+      throw new ForbiddenException(
+        "You can only request refunds for your own bookings"
+      );
     }
 
     // Validate refund amount doesn't exceed available amount
@@ -74,7 +78,9 @@ export class RefundRequestService {
     });
 
     if (existingRequest) {
-      throw new BadRequestException("There is already a pending refund request for this payment");
+      throw new BadRequestException(
+        "There is already a pending refund request for this payment"
+      );
     }
 
     const refundRequest = this.refundRequestRepository.create({
@@ -132,12 +138,16 @@ export class RefundRequestService {
 
     // Verify the agency owns the car for this booking
     if (refundRequest.booking.car.agencyId !== agencyId) {
-      throw new ForbiddenException("You can only review refund requests for your own bookings");
+      throw new ForbiddenException(
+        "You can only review refund requests for your own bookings"
+      );
     }
 
     if (refundRequest.status !== RefundRequestStatus.PENDING) {
-      throw new BadRequestException("This refund request has already been reviewed");
-    }    // Update the refund request
+      throw new BadRequestException(
+        "This refund request has already been reviewed"
+      );
+    } // Update the refund request
     refundRequest.status = dto.status;
     refundRequest.reviewedByAgencyId = agencyId;
     if (dto.agencyNotes) {
@@ -158,7 +168,9 @@ export class RefundRequestService {
     return refundRequest;
   }
 
-  private async processApprovedRefund(refundRequest: RefundRequest): Promise<void> {
+  private async processApprovedRefund(
+    refundRequest: RefundRequest
+  ): Promise<void> {
     try {
       // Use the existing payment service to process the refund
       await this.paymentService.refundPayment({
@@ -173,7 +185,9 @@ export class RefundRequestService {
       await this.refundRequestRepository.save(refundRequest);
     } catch (error) {
       console.error("Failed to process approved refund:", error);
-      throw new BadRequestException("Failed to process refund. Please try again.");
+      throw new BadRequestException(
+        "Failed to process refund. Please try again."
+      );
     }
   }
 

@@ -9,7 +9,10 @@ import { TimestampEntity } from "../../Generics/timestamp.entity";
 import { Payment } from "./payment.entity";
 import { User } from "../../user/entities/user.entity";
 import { Booking } from "../../booking/entities/booking.entity";
-import { RefundRequestStatus, RefundRequestType } from "../enums/refund-request.enum";
+import {
+  RefundRequestStatus,
+  RefundRequestType,
+} from "../enums/refund-request.enum";
 
 @Entity()
 export class RefundRequest extends TimestampEntity {
@@ -45,7 +48,11 @@ export class RefundRequest extends TimestampEntity {
   @Column({ type: "text", nullable: true })
   reason?: string;
 
-  @Column({ type: "enum", enum: RefundRequestStatus, default: RefundRequestStatus.PENDING })
+  @Column({
+    type: "enum",
+    enum: RefundRequestStatus,
+    default: RefundRequestStatus.PENDING,
+  })
   status: RefundRequestStatus;
   @Column({ nullable: true })
   reviewedByAgencyId?: number;

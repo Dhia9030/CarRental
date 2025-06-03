@@ -1,6 +1,6 @@
 export enum RefundRequestStatus {
   PENDING = "PENDING",
-  APPROVED = "APPROVED", 
+  APPROVED = "APPROVED",
   REJECTED = "REJECTED",
   PROCESSED = "PROCESSED",
 }

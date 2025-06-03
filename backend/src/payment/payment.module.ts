@@ -19,7 +19,11 @@ import { BookingModule } from "../booking/booking.module";
     ConfigModule,
     forwardRef(() => BookingModule),
   ],
-  controllers: [PaymentController, PaymentIntegrationController, RefundRequestController],
+  controllers: [
+    PaymentController,
+    PaymentIntegrationController,
+    RefundRequestController,
+  ],
   providers: [PaymentService, PaymentIntegrationService, RefundRequestService],
   exports: [PaymentService, PaymentIntegrationService, RefundRequestService],
 })

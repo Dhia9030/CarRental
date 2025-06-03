@@ -65,7 +65,8 @@ export class PaymentController {
   @Post("confirm/:paymentIntentId")
   async confirmPayment(@Param("paymentIntentId") paymentIntentId: string) {
     return await this.paymentService.confirmPayment(paymentIntentId);
-  }  @Post("refund")
+  }
+  @Post("refund")
   @Roles(Role.AGENCY, Role.ADMIN)
   @UseGuards(RolesGuard)
   async refundPayment(@Body() dto: RefundPaymentDto, @Agency() agency: any) {
