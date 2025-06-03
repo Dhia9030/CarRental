@@ -34,11 +34,13 @@ import { gql, useQuery } from "@apollo/client";
 const mapComplaintResponse = (complaint: any) => {
   const isClient = complaint.complainantType === "Client";
   const complainant = isClient
-    ? complaint.complainantUser?.firstName + complaint.complainantUser?.lastName
+    ? complaint.complainantUser?.firstName +
+      " " +
+      complaint.complainantUser?.lastName
     : complaint.complainantAgency?.username;
   const against = complaint.againstAgency
     ? complaint.againstAgency.username
-    : complaint.againstUser?.firstName + complaint.againstUser?.lastName;
+    : complaint.againstUser?.firstName + " " + complaint.againstUser?.lastName;
   return {
     id: complaint.id,
     title: complaint.title,

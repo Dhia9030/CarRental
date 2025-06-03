@@ -12,6 +12,7 @@ import { OneToMany } from "typeorm";
 import { Complaint } from "src/complaints/entities/complaint.entity";
 import { ObjectType, Field, ID } from "@nestjs/graphql";
 import { registerEnumType } from "@nestjs/graphql";
+import { GraphQLISODateTime } from "@nestjs/graphql";
 
 export enum BookingStatus {
   Pending = "Pending",
@@ -45,11 +46,11 @@ export class Booking extends TimestampEntity {
   @JoinColumn({ name: "carId" })
   car: Car;
 
-  @Field(() => Date)
+  @Field(() => GraphQLISODateTime)
   @Column({ type: "date" })
   startDate: Date;
 
-  @Field(() => Date)
+  @Field(() => GraphQLISODateTime)
   @Column({ type: "date" })
   endDate: Date;
 

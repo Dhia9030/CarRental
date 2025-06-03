@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
-import Link from "next/link"
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +12,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarFooter,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   Users,
@@ -26,7 +26,7 @@ import {
   Clock,
   Bell,
   LogOut,
-} from "lucide-react"
+} from "lucide-react";
 
 const menuItems = [
   {
@@ -37,18 +37,12 @@ const menuItems = [
   {
     title: "Utilisateurs",
     icon: Users,
-    items: [
-      { title: "Liste des utilisateurs", url: "/admin/users", icon: Users },
-      { title: "Validation en attente", url: "/admin/users/validation", icon: Clock },
-    ],
+    url: "/admin/users",
   },
   {
     title: "Agences",
     icon: Building2,
-    items: [
-      { title: "Liste des agences", url: "/admin/agencies", icon: Building2 },
-      { title: "Validation en attente", url: "/admin/agencies/validation", icon: Clock },
-    ],
+    url: "/admin/agencies",
   },
   {
     title: "Réclamations",
@@ -71,24 +65,19 @@ const menuItems = [
     icon: BarChart3,
   },
   {
-    title: "Paramètres",
-    url: "/admin/settings",
-    icon: Settings,
-  },
-  {
     title: "Profil",
     url: "/admin/profile",
     icon: User,
   },
-]
+];
 
 export function AdminSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const handleLogout = () => {
-    localStorage.removeItem("admin_token")
-    window.location.href = "/auth"
-  }
+    localStorage.removeItem("admin_token");
+    window.location.href = "/auth";
+  };
 
   return (
     <Sidebar className="border-r-0">
@@ -110,48 +99,22 @@ export function AdminSidebar() {
               <SidebarMenu className="space-y-1">
                 {menuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    {item.items ? (
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-3 px-3 py-2 text-sm font-medium text-sky-100">
-                          <item.icon className="h-5 w-5" />
-                          <span>{item.title}</span>
-                        </div>
-                        <div className="ml-6 space-y-1">
-                          {item.items.map((subItem) => (
-                            <SidebarMenuButton
-                              key={subItem.url}
-                              asChild
-                              className={`text-sky-100 hover:bg-sky-700/50 data-[active=true]:bg-sky-700 data-[active=true]:text-white ${
-                                pathname === subItem.url ? "bg-sky-700 text-white" : ""
-                              }`}
-                            >
-                              <Link
-                                href={subItem.url}
-                                className="flex items-center space-x-3 px-3 py-2 rounded-md transition-colors"
-                              >
-                                <subItem.icon className="h-4 w-4" />
-                                <span className="text-sm">{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <SidebarMenuButton
-                        asChild
-                        className={`text-sky-100 hover:bg-sky-700/50 data-[active=true]:bg-sky-700 data-[active=true]:text-white ${
-                          pathname === item.url ? "bg-sky-700 text-white" : ""
-                        }`}
+                    <SidebarMenuButton
+                      asChild
+                      className={`text-sky-100 hover:bg-sky-700/50 data-[active=true]:bg-sky-700 data-[active=true]:text-white ${
+                        pathname === item.url ? "bg-sky-700 text-white" : ""
+                      }`}
+                    >
+                      <Link
+                        href={item.url!}
+                        className="flex items-center space-x-3 px-3 py-2 rounded-md transition-colors"
                       >
-                        <Link
-                          href={item.url!}
-                          className="flex items-center space-x-3 px-3 py-2 rounded-md transition-colors"
-                        >
-                          <item.icon className="h-5 w-5" />
-                          <span className="text-sm font-medium">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    )}
+                        <item.icon className="h-5 w-5" />
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -172,5 +135,5 @@ export function AdminSidebar() {
         </SidebarFooter>
       </div>
     </Sidebar>
-  )
+  );
 }
