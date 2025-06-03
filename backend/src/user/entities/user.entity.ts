@@ -14,7 +14,9 @@ import { UserRole } from "../enums/role.enum";
 import { TimestampEntity } from "src/Generics/timestamp.entity";
 import { Exclude } from "class-transformer";
 import { Complaint } from "src/complaints/entities/complaint.entity";
-import { ObjectType, Field, ID,Int } from "@nestjs/graphql";
+import { ObjectType, Field, ID, Int } from "@nestjs/graphql";
+import { Conversation } from "src/chat/entities/conversation.entity";
+import { Message } from "src/chat/entities/message.entity";
 @ObjectType()
 @Entity()
 @Unique(["email"])
@@ -55,7 +57,7 @@ export class User extends TimestampEntity {
   })
   role: UserRole;
 
-  @Field(()=>[Review])
+  @Field(() => [Review])
   @OneToMany(() => Review, (review) => review.user)
   reviews: Review[];
 
@@ -70,4 +72,13 @@ export class User extends TimestampEntity {
   @Field(() => [Complaint], { nullable: true })
   @OneToMany(() => Complaint, (complaint) => complaint.againstUser)
   complaintsAgainst: Complaint[];
+
+  @OneToMany(() => Conversation, conversation => conversation.user)
+  userConversations: Conversation[];
+
+  @OneToMany(() => Conversation, conversation => conversation.admin)
+  adminConversations: Conversation[];
+
+  @OneToMany(() => Message, message => message.sender)
+  messages: Message[];
 }
