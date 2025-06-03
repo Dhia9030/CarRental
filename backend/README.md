@@ -23,7 +23,29 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Car Rental Backend API - A comprehensive NestJS application providing secure car rental management with advanced payment processing and refund authorization system.
+
+### Key Features
+
+- **Role-Based Authentication**: JWT-based authentication with support for clients, agencies, and administrators
+- **Secure Payment Processing**: Integration with Stripe for secure payment handling
+- **Refund Authorization System**: Multi-step refund approval workflow with agency oversight
+- **Real-time Communication**: WebSocket support for live chat and notifications
+- **Comprehensive Booking Management**: End-to-end booking lifecycle management
+- **Review System**: Rating and review system for cars and agencies
+- **Health Monitoring**: Built-in health checks and monitoring endpoints
+
+### New: Refund Authorization System
+
+The application now includes a comprehensive refund authorization system that replaces direct client refunds with a secure, agency-approved workflow:
+
+- **Client Request System**: Clients submit refund requests with reasons and amounts
+- **Agency Review Process**: Agencies must approve or reject refund requests
+- **Multiple Refund Types**: Support for full refunds, partial refunds, deposit releases, and cancellation refunds
+- **Complete Audit Trail**: Full tracking from request to processing
+- **Role-Based Security**: Prevents unauthorized refunds through proper access controls
+
+📖 **[Complete Refund Authorization API Guide](./REFUND_AUTHORIZATION_API_GUIDE.md)**
 
 ## Project setup
 

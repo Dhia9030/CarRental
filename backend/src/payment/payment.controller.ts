@@ -8,6 +8,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import { PaymentService } from "./payment.service";
 import { CreatePaymentDto } from "./dtos/create-payment.dto";
@@ -15,8 +16,14 @@ import { UpdatePaymentDto } from "./dtos/update-payment.dto";
 import { RefundPaymentDto } from "./dtos/refund-payment.dto";
 import { ProcessBookingPaymentDto } from "./dtos/process-booking-payment.dto";
 import { PaymentStatus } from "./enums/payment-status.enum";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles/roles.guard";
+import { Roles } from "../auth/decorators/roles.decorator";
+import { Role } from "../auth/enums/role.enum";
+import { Agency } from "../auth/decorators/auth.decorators";
 
 @Controller("payments")
+@UseGuards(JwtAuthGuard)
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
@@ -58,17 +65,21 @@ export class PaymentController {
   @Post("confirm/:paymentIntentId")
   async confirmPayment(@Param("paymentIntentId") paymentIntentId: string) {
     return await this.paymentService.confirmPayment(paymentIntentId);
-  }
-
-  @Post("refund")
-  async refundPayment(@Body() dto: RefundPaymentDto) {
+  }  @Post("refund")
+  @Roles(Role.AGENCY, Role.ADMIN)
+  @UseGuards(RolesGuard)
+  async refundPayment(@Body() dto: RefundPaymentDto, @Agency() agency: any) {
+    // For now, agencies can refund any payment - validation should be added in service
     return await this.paymentService.refundPayment(dto);
   }
 
   @Post("release-deposit/:bookingId")
+  @Roles(Role.AGENCY, Role.ADMIN)
+  @UseGuards(RolesGuard)
   async releaseSecurityDeposit(
     @Param("bookingId") bookingId: number,
-    @Body() body: { deductionAmount?: number }
+    @Body() body: { deductionAmount?: number },
+    @Agency() agency: any
   ) {
     return await this.paymentService.releaseSecurityDeposit(
       +bookingId,

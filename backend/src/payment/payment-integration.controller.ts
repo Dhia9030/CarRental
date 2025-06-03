@@ -1,5 +1,10 @@
-import { Controller, Post, Get, Put, Param, Body, Query } from "@nestjs/common";
+import { Controller, Post, Get, Put, Param, Body, Query, UseGuards } from "@nestjs/common";
 import { PaymentIntegrationService } from "./payment-integration.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { RolesGuard } from "../auth/guards/roles/roles.guard";
+import { Roles } from "../auth/decorators/roles.decorator";
+import { Role } from "../auth/enums/role.enum";
+import { Agency } from "../auth/decorators/auth.decorators";
 
 export class ProcessFullBookingPaymentDto {
   bookingId: number;
@@ -26,8 +31,8 @@ export class PaymentIntegrationController {
   constructor(
     private readonly paymentIntegrationService: PaymentIntegrationService
   ) {}
-
   @Get("breakdown/:bookingId")
+  @UseGuards(JwtAuthGuard)
   async getPaymentBreakdown(@Param("bookingId") bookingId: number) {
     return await this.paymentIntegrationService.calculatePaymentBreakdown(
       +bookingId
@@ -35,6 +40,8 @@ export class PaymentIntegrationController {
   }
 
   @Post("process-full-payment")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.AGENCY, Role.ADMIN)
   async processCompleteBookingPayment(
     @Body() dto: ProcessFullBookingPaymentDto
   ) {
@@ -44,8 +51,9 @@ export class PaymentIntegrationController {
       dto.customSecurityDepositAmount
     );
   }
-
   @Post("cancel-booking")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.AGENCY, Role.ADMIN)
   async handleBookingCancellation(@Body() dto: CancelBookingDto) {
     return await this.paymentIntegrationService.handleBookingCancellation(
       dto.bookingId,
@@ -54,19 +62,22 @@ export class PaymentIntegrationController {
   }
 
   @Post("complete-booking")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.AGENCY, Role.ADMIN)
   async handleBookingCompletion(@Body() dto: CompleteBookingDto) {
     return await this.paymentIntegrationService.handleBookingCompletion(
       dto.bookingId,
       dto.damageAssessment
     );
   }
-
   @Get("history/:bookingId")
+  @UseGuards(JwtAuthGuard)
   async getPaymentHistory(@Param("bookingId") bookingId: number) {
     return await this.paymentIntegrationService.getPaymentHistory(+bookingId);
   }
 
   @Get("invoice/:bookingId")
+  @UseGuards(JwtAuthGuard)
   async generateInvoice(@Param("bookingId") bookingId: number) {
     return await this.paymentIntegrationService.generateInvoice(+bookingId);
   }

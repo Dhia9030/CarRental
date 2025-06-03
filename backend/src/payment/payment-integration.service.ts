@@ -181,6 +181,7 @@ export class PaymentIntegrationService {
         // Full refund of security deposit for cancellations
         const refund = await this.paymentService.refundPayment({
           paymentId: payment.id,
+          amount: payment.amount,
           reason: "Security deposit refund due to cancellation",
         });
         refunds.push(refund);

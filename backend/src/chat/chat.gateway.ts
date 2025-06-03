@@ -9,7 +9,7 @@ import { UserRole } from 'src/user/enums/role.enum';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
-@WebSocketGateway(3001, {
+@WebSocketGateway(3005, {
     cors: {
         origin: '*', // Allow all origins (adjust for production)
         methods: ['GET', 'POST'],
